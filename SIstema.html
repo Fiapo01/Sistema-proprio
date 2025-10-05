@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ficha — Morte Silenciosa (d20) — Editável</title>
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--accent:#ef4444;--muted:#94a3b8;--panel:#071022;--glass:rgba(255,255,255,0.03)}
+    html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;background:linear-gradient(180deg,#071026 0%, #081426 40%, #02121a 100%);color:#e6eef8}
+    .wrap{max-width:1100px;margin:28px auto;padding:22px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;box-shadow:0 6px 30px rgba(2,6,23,0.8)}
+    header{display:flex;align-items:center;justify-content:space-between;gap:16px}
+    header h1{font-size:20px;margin:0}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px;margin-top:18px}
+    .card{background:var(--card);padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03)}
+    .col-4{grid-column:span 4}
+    .col-8{grid-column:span 8}
+    .col-6{grid-column:span 6}
+    label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+    input[type=text], input[type=number], select, textarea{width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:var(--panel);color:inherit}
+    .attrs{display:flex;gap:8px}
+    .attr{flex:1;text-align:center;padding:8px;background:var(--glass);border-radius:8px}
+    .attr h3{margin:0;font-size:12px;color:var(--muted)}
+    .attr .val{font-size:20px;margin:6px 0}
+    .attr-controls{display:flex;justify-content:center;gap:6px}
+    button{cursor:pointer;padding:8px 10px;border-radius:8px;border:none;background:linear-gradient(180deg,#1f2937,#111827);color:#e6eef8}
+    .btn-accent{background:linear-gradient(180deg,#ef4444,#b91c1c);}
+    .small{font-size:12px;padding:6px 8px}
+    .row{display:flex;gap:8px}
+    .footer-actions{display:flex;gap:8px;align-items:center}
+    .note{font-size:13px;color:var(--muted)}
+    textarea{min-height:84px}
+    .inline{display:flex;gap:8px;align-items:center}
+    .stats{display:flex;gap:8px;flex-wrap:wrap}
+    .stat-box{background:var(--panel);padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.02);min-width:120px}
+    .professions{display:flex;gap:8px;flex-wrap:wrap}
+    .spaced{margin-top:8px}
+    @media (max-width:900px){.col-4,.col-6,.col-8{grid-column:span 12}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Ficha — <strong>Morte Silenciosa (d20)</strong></h1>
+        <div class="note">Ficha editável em HTML — preencha, salve JSON, imprima ou exporte.</div>
+      </div>
+      <div class="footer-actions">
+        <button id="btnSave" class="small">Salvar (JSON)</button>
+        <button id="btnLoad" class="small">Carregar (JSON)</button>
+        <button id="btnPrint" class="small">Imprimir / Exportar PDF</button>
+        <button id="btnClear" class="small">Limpar</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <div class="card col-4">
+        <label>Nome</label>
+        <input id="nome" type="text" placeholder="Nome do personagem" />
+
+        <label class="spaced">Profissão</label>
+        <select id="profissao">
+          <option value="">— Selecione —</option>
+          <option value="militar">Militar (+1 FOR, +1 AGI) — Pistola</option>
+          <option value="medico">Médico (+1 MEN, +1 VIG) — Kit</option>
+          <option value="engenheiro">Engenheiro (+1 MEN, +1 FOR) — Ferramentas</option>
+          <option value="civil">Civil (+1 AGI, +1 CAR) — Faca</option>
+          <option value="criminoso">Criminoso (+1 AGI, +1 FOR) — Molotovs</option>
+        </select>
+
+        <div class="spaced">
+          <label>PV</label>
+          <input id="pv" type="number" readonly />
+        </div>
+
+        <div class="spaced">
+          <label>Defesa</label>
+          <input id="defesa" type="number" readonly />
+        </div>
+
+        <div class="spaced">
+          <label>Sanidade</label>
+          <input id="sanidade" type="number" readonly />
+        </div>
+
+      </div>
+
+      <div class="card col-8">
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <div style="flex:1">
+            <label>Atributos (distribua +5 pontos — cada atributo entre -1 e +4)</label>
+            <div class="attrs">
+              <div class="attr">
+                <h3>FOR</h3>
+                <div class="val" id="valFOR">0</div>
+                <div class="attr-controls">
+                  <button data-attr="FOR" class="dec small">-</button>
+                  <button data-attr="FOR" class="inc small">+</button>
+                </div>
+              </div>
+              <div class="attr">
+                <h3>AGI</h3>
+                <div class="val" id="valAGI">0</div>
+                <div class="attr-controls">
+                  <button data-attr="AGI" class="dec small">-</button>
+                  <button data-attr="AGI" class="inc small">+</button>
+                </div>
+              </div>
+              <div class="attr">
+                <h3>VIG</h3>
+                <div class="val" id="valVIG">0</div>
+                <div class="attr-controls">
+                  <button data-attr="VIG" class="dec small">-</button>
+                  <button data-attr="VIG" class="inc small">+</button>
+                </div>
+              </div>
+              <div class="attr">
+                <h3>MEN</h3>
+                <div class="val" id="valMEN">0</div>
+                <div class="attr-controls">
+                  <button data-attr="MEN" class="dec small">-</button>
+                  <button data-attr="MEN" class="inc small">+</button>
+                </div>
+              </div>
+              <div class="attr">
+                <h3>CAR</h3>
+                <div class="val" id="valCAR">0</div>
+                <div class="attr-controls">
+                  <button data-attr="CAR" class="dec small">-</button>
+                  <button data-attr="CAR" class="inc small">+</button>
+                </div>
+              </div>
+            </div>
+            <div style="margin-top:8px" class="note">Pontos restantes: <strong id="ptsRest">5</strong></div>
+          </div>
+
+          <div style="width:260px">
+            <div class="stat-box">
+              <div class="note">Bônus de profissão</div>
+              <div id="profBônus" style="margin-top:8px">Nenhum</div>
+            </div>
+
+            <div class="stat-box spaced">
+              <div class="note">Equipamento inicial</div>
+              <div id="equipInit" style="margin-top:8px">—</div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="spaced">
+          <label>Armas e itens (separe por vírgula)</label>
+          <input id="armas" type="text" placeholder="Pistola (1d8), Faca (1d6), Rádio" />
+        </div>
+
+        <div class="spaced">
+          <label>Inventário (texto livre)</label>
+          <textarea id="inventario" placeholder="Munição, Comida, Água, Ferramentas..."></textarea>
+        </div>
+
+      </div>
+
+      <div class="card col-6">
+        <label>Traumas / Notas</label>
+        <textarea id="traumas" placeholder="Traumas, condições, vantagens, desvantagens..."></textarea>
+
+        <div class="spaced">
+          <label>Ferimentos atuais (PV perdidos)</label>
+          <input id="pvPerdidos" type="number" min="0" value="0" />
+        </div>
+
+        <div class="spaced inline">
+          <label style="min-width:120px">Armadura (bônus)</label>
+          <input id="armadura" type="number" value="0" style="width:80px" />
+        </div>
+
+      </div>
+
+      <div class="card col-6">
+        <label>Habilidades / Observações</label>
+        <textarea id="habilidades" placeholder="Perícias, vantagens narrativas..."></textarea>
+
+        <div class="spaced">
+          <label>Rolar teste rápido</label>
+          <div class="row">
+            <select id="testeAtr">
+              <option value="FOR">FOR (Corpo a corpo)</option>
+              <option value="AGI">AGI (Distância / Esquiva)</option>
+              <option value="VIG">VIG (Resistência)</option>
+              <option value="MEN">MEN (Percepção / Sanidade)</option>
+              <option value="CAR">CAR (Influência)</option>
+            </select>
+            <input id="testMod" type="number" value="0" style="width:70px" />
+            <button id="btnRoll" class="small">Rolar</button>
+          </div>
+          <div class="note spaced">Resultado: <strong id="rollResult">—</strong></div>
+        </div>
+      </div>
+
+      <div class="card col-12">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+          <div>
+            <div class="note">Exportar / Importar</div>
+            <div class="note">Você pode salvar a ficha em JSON, recarregar ou imprimir diretamente (para PDF).</div>
+          </div>
+          <div class="row">
+            <button id="btnExportJSON" class="small">Exportar JSON</button>
+            <input id="fileInput" type="file" accept="application/json" style="display:none" />
+            <button id="btnImportJSON" class="small">Importar JSON</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // Estado
+    const state = {FOR:0,AGI:0,VIG:0,MEN:0,CAR:0,pts:5,prof:'',armadura:0}
+
+    // Elementos
+    const els = {
+      valFOR: document.getElementById('valFOR'),
+      valAGI: document.getElementById('valAGI'),
+      valVIG: document.getElementById('valVIG'),
+      valMEN: document.getElementById('valMEN'),
+      valCAR: document.getElementById('valCAR'),
+      ptsRest: document.getElementById('ptsRest'),
+      profissao: document.getElementById('profissao'),
+      profBonus: document.getElementById('profBônus'),
+      equipInit: document.getElementById('equipInit'),
+      pv: document.getElementById('pv'),
+      defesa: document.getElementById('defesa'),
+      sanidade: document.getElementById('sanidade'),
+      pvPerdidos: document.getElementById('pvPerdidos'),
+      armadura: document.getElementById('armadura'),
+      nome: document.getElementById('nome'),
+      armas: document.getElementById('armas'),
+      inventario: document.getElementById('inventario'),
+      traumas: document.getElementById('traumas'),
+      habilidades: document.getElementById('habilidades'),
+      btnRoll: document.getElementById('btnRoll'),
+      testeAtr: document.getElementById('testeAtr'),
+      testMod: document.getElementById('testMod'),
+      rollResult: document.getElementById('rollResult'),
+      btnSave: document.getElementById('btnSave'),
+      btnLoad: document.getElementById('btnLoad'),
+      btnPrint: document.getElementById('btnPrint'),
+      btnClear: document.getElementById('btnClear'),
+      btnExportJSON: document.getElementById('btnExportJSON'),
+      btnImportJSON: document.getElementById('btnImportJSON'),
+      fileInput: document.getElementById('fileInput')
+    }
+
+    function updateUI(){
+      els.valFOR.textContent = state.FOR
+      els.valAGI.textContent = state.AGI
+      els.valVIG.textContent = state.VIG
+      els.valMEN.textContent = state.MEN
+      els.valCAR.textContent = state.CAR
+      els.ptsRest.textContent = state.pts
+
+      // PV, Defesa, Sanidade
+      const basePV = 10 + (state.VIG * 2)
+      const pvPerdidos = parseInt(els.pvPerdidos.value||0,10)
+      els.pv.value = Math.max(0, basePV - pvPerdidos)
+
+      const defesa = 10 + state.AGI + (parseInt(els.armadura.value||0,10))
+      els.defesa.value = defesa
+
+      els.sanidade.value = 10 + state.MEN
+
+      // Profissão
+      let profText = 'Nenhum'
+      let equipText = '—'
+      if(state.prof==='militar'){profText = '+1 FOR, +1 AGI'; equipText='Pistola (1d8), colete leve'}
+      if(state.prof==='medico'){profText = '+1 MEN, +1 VIG'; equipText='Kit de primeiros socorros (1d8)'}
+      if(state.prof==='engenheiro'){profText = '+1 MEN, +1 FOR'; equipText='Ferramentas, rádio'}
+      if(state.prof==='civil'){profText = '+1 AGI, +1 CAR'; equipText='Faca, mochila'}
+      if(state.prof==='criminoso'){profText = '+1 AGI, +1 FOR'; equipText='Molotovs, lockpick'}
+      els.profBonus.textContent = profText
+      els.equipInit.textContent = equipText
+    }
+
+    function changeAttr(attr,delta){
+      const min = -1, max = 4
+      let val = state[attr] + delta
+      // apply profession bonuses temporarily for distribution? We'll exclude prof bonuses from points
+      if(val < min) val = min
+      if(val > max) val = max
+      const used = (state.FOR + state.AGI + state.VIG + state.MEN + state.CAR)
+      const ptsLeftBefore = state.pts
+      // compute proposed used points (only counting positive increments beyond -1 baseline)
+      // For simplicity: points spent = sum(max(0, attrValue)) but allow negatives
+      // We'll use simple rule: sum of (value) - (-1*5) but that's complex. Simpler: we cap total increases from 0 baseline.
+      // Implementation: enforce sum of (value) over baseline 0 not exceed 5 (baseline 0). Negatives free.
+      const baselineSum = Math.max(0, (attr==='FOR'?val:state.FOR)) + Math.max(0, (attr==='AGI'?val:state.AGI)) + Math.max(0, (attr==='VIG'?val:state.VIG)) + Math.max(0, (attr==='MEN'?val:state.MEN)) + Math.max(0, (attr==='CAR'?val:state.CAR))
+      if(baselineSum > 5) return // ignore change
+      state[attr] = val
+      state.pts = 5 - baselineSum
+      updateUI()
+    }
+
+    // Attach inc/dec
+    document.querySelectorAll('.inc').forEach(b=>b.addEventListener('click',e=>{
+      changeAttr(e.currentTarget.dataset.attr,1)
+    }))
+    document.querySelectorAll('.dec').forEach(b=>b.addEventListener('click',e=>{
+      changeAttr(e.currentTarget.dataset.attr,-1)
+    }))
+
+    // Profession apply
+    els.profissao.addEventListener('change',()=>{
+      state.prof = els.profissao.value
+      // apply bonuses as transient (do not consume points). We'll show bonuses visually only.
+      updateUI()
+    })
+
+    // Quick roll
+    function d20(){return Math.floor(Math.random()*20)+1}
+    els.btnRoll.addEventListener('click',()=>{
+      const atr = els.testeAtr.value
+      const mod = parseInt(els.testMod.value||0,10)
+      const base = state[atr] || 0
+      // add profession bonus if relevant
+      let profExtra = 0
+      if(state.prof==='militar' && (atr==='FOR' || atr==='AGI')) profExtra = 1
+      if(state.prof==='medico' && (atr==='MEN' || atr==='VIG')) profExtra = 1
+      if(state.prof==='engenheiro' && (atr==='MEN' || atr==='FOR')) profExtra = 1
+      if(state.prof==='civil' && (atr==='AGI' || atr==='CAR')) profExtra = 1
+      if(state.prof==='criminoso' && (atr==='AGI' || atr==='FOR')) profExtra = 1
+
+      const roll = d20()
+      const total = roll + base + profExtra + mod
+      els.rollResult.textContent = `${roll} + ${base} + ${profExtra} + ${mod} = ${total}`
+    })
+
+    // Save / Load JSON
+    function gather(){
+      return {
+        nome: els.nome.value,
+        profissao: state.prof,
+        atributos: {FOR:state.FOR,AGI:state.AGI,VIG:state.VIG,MEN:state.MEN,CAR:state.CAR},
+        pvAtual: parseInt(els.pv.value||0,10),
+        pvPerdidos: parseInt(els.pvPerdidos.value||0,10),
+        armadura: parseInt(els.armadura.value||0,10),
+        defesa: parseInt(els.defesa.value||0,10),
+        sanidade: parseInt(els.sanidade.value||0,10),
+        armas: els.armas.value,
+        inventario: els.inventario.value,
+        traumas: els.traumas.value,
+        habilidades: els.habilidades.value
+      }
+    }
+
+    els.btnSave.addEventListener('click',()=>{
+      const data = gather()
+      const blob = new Blob([JSON.stringify(data, null, 2)],{type:'application/json'})
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url; a.download = (data.nome||'ficha') + '.json'
+      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url)
+    })
+
+    els.btnExportJSON.addEventListener('click',()=>{els.btnSave.click()})
+
+    els.btnImportJSON.addEventListener('click',()=>{els.fileInput.click()})
+    els.fileInput.addEventListener('change',async (ev)=>{
+      const f = ev.target.files[0]
+      if(!f) return
+      const text = await f.text()
+      try{
+        const j = JSON.parse(text)
+        loadFromJSON(j)
+      }catch(e){alert('Arquivo inválido')}
+    })
+
+    function loadFromJSON(j){
+      els.nome.value = j.nome || ''
+      state.prof = j.profissao || ''
+      els.profissao.value = state.prof
+      const at = j.atributos||{}
+      state.FOR = at.FOR||0; state.AGI = at.AGI||0; state.VIG = at.VIG||0; state.MEN = at.MEN||0; state.CAR = at.CAR||0
+      // recompute pts
+      const baselineSum = Math.max(0,state.FOR)+Math.max(0,state.AGI)+Math.max(0,state.VIG)+Math.max(0,state.MEN)+Math.max(0,state.CAR)
+      state.pts = Math.max(0,5-baselineSum)
+      els.pvPerdidos.value = j.pvPerdidos||0
+      els.armadura.value = j.armadura||0
+      els.armas.value = j.armas||''
+      els.inventario.value = j.inventario||''
+      els.traumas.value = j.traumas||''
+      els.habilidades.value = j.habilidades||''
+      updateUI()
+    }
+
+    // Print
+    els.btnPrint.addEventListener('click',()=>{window.print()})
+
+    // Clear
+    els.btnClear.addEventListener('click',()=>{
+      if(!confirm('Limpar todos os campos?')) return
+      els.nome.value = ''
+      state.FOR=0;state.AGI=0;state.VIG=0;state.MEN=0;state.CAR=0;state.pts=5;state.prof=''
+      els.profissao.value = ''
+      els.armas.value='';els.inventario.value='';els.traumas.value='';els.habilidades.value='';els.pvPerdidos.value=0;els.armadura.value=0
+      updateUI()
+    })
+
+    // Quick load example function: prefill sample
+    function preloadExample(){
+      els.nome.value = 'Exemplo — Ana Silva'
+      state.FOR=1;state.AGI=2;state.VIG=1;state.MEN=0;state.CAR=1;state.pts = Math.max(0,5-(Math.max(0,1)+Math.max(0,2)+Math.max(0,1)+Math.max(0,0)+Math.max(0,1)))
+      state.prof='civil'; els.profissao.value='civil'
+      els.armas.value='Faca (1d6), Pistola frágil (1d8)'
+      els.inventario.value='Munição x6, 2 comidas enlatadas, Garrafa d\'água'
+      els.traumas.value='Medo de espaços fechados'
+      els.habilidades.value='Furtividade 1, Conhecimentos urbanos'
+      updateUI()
+    }
+
+    // Init
+    updateUI()
+    // preloadExample() // uncomment for demo
+
+  </script>
+</body>
+</html>
