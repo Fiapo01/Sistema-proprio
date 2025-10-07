@@ -1,568 +1,477 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Ficha — Morte Silenciosa (d20) — Automática</title>
-  <style>
-    :root{--bg:#071025;--card:#0b1220;--muted:#94a3b8;--accent:#ef4444;--glass:rgba(255,255,255,0.03);--glass-2:rgba(255,255,255,0.02)}
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial;background:linear-gradient(180deg,var(--bg) 0%, #021226 100%);color:#e6eef8}
-    .wrap{max-width:1200px;margin:28px auto;padding:22px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:14px;box-shadow:0 8px 40px rgba(2,6,23,0.8)}
-    header{display:flex;align-items:center;justify-content:space-between;gap:16px}
-    header h1{font-size:20px;margin:0}
-    .note{color:var(--muted);font-size:13px}
-
-    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px;margin-top:18px}
-    .card{background:linear-gradient(180deg,var(--card),#071022);padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,0.03)}
-    .col-4{grid-column:span 4}
-    .col-8{grid-column:span 8}
-    .col-6{grid-column:span 6}
-    .col-12{grid-column:span 12}
-    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
-    input[type=text], input[type=number], select, textarea{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
-    textarea{min-height:80px}
-    .attrs{display:flex;gap:8px}
-    .attr{flex:1;text-align:center;padding:10px;background:var(--glass);border-radius:10px}
-    .attr h3{margin:0;font-size:12px;color:var(--muted)}
-    .attr .val{font-size:22px;margin:8px 0}
-    .attr-controls{display:flex;justify-content:center;gap:8px}
-    button{cursor:pointer;padding:8px 10px;border-radius:8px;border:none;background:linear-gradient(180deg,#1f2937,#111827);color:#e6eef8}
-    .btn-accent{background:linear-gradient(180deg,var(--accent),#b91c1c);}
-    .small{font-size:12px;padding:6px 8px}
-    .row{display:flex;gap:8px}
-    .footer-actions{display:flex;gap:8px;align-items:center}
-    .skills-list{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-    .skill{background:var(--glass-2);padding:8px;border-radius:8px;display:flex;justify-content:space-between;align-items:center}
-    .abilities{display:flex;flex-direction:column;gap:8px}
-    .chip{padding:6px 8px;border-radius:999px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03)}
-    .stat-box{background:var(--panel,transparent);padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.02);min-width:120px}
-    .top-row{display:flex;gap:12px}
-    .help{font-size:12px;color:var(--muted)}
-    @media (max-width:980px){.col-4,.col-6,.col-8{grid-column:span 12}}
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Ficha — Sistema Z (Modo Escuro)</title>
+<style>
+  :root{
+    --bg:#07070a;
+    --panel:#0f1720;
+    --muted:#93a1b1;
+    --accent:#ef4444;
+    --glass:rgba(255,255,255,0.03);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,Segoe UI,Arial;background:linear-gradient(180deg,var(--bg),#04101a);color:#e7eef8;padding:18px}
+  .wrap{max-width:1100px;margin:0 auto}
+  header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+  h1{margin:0;color:var(--accent);font-size:20px}
+  .note{color:var(--muted);font-size:13px}
+  .card{background:linear-gradient(180deg,var(--panel),#071022);padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);box-shadow:0 6px 24px rgba(0,0,0,0.5)}
+  .grid{display:grid;grid-template-columns:1fr 380px;gap:14px;margin-top:14px}
+  label{display:block;color:var(--muted);font-size:13px;margin-bottom:6px}
+  input[type=text], textarea, select{width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
+  textarea{min-height:90px}
+  .attrs{display:flex;gap:8px;margin-top:8px}
+  .attr{flex:1;background:var(--glass);padding:10px;border-radius:10px;text-align:center}
+  .attr .name{font-size:13px;color:var(--muted)}
+  .attr .val{font-size:20px;margin:6px 0}
+  .attr .controls{display:flex;justify-content:center;gap:8px}
+  .btn{background:var(--accent);border:none;color:white;padding:8px 10px;border-radius:8px;cursor:pointer}
+  .btn.secondary{background:#2b3946}
+  .skills{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px}
+  .skill{background:var(--glass);padding:8px;border-radius:8px;display:flex;justify-content:space-between;align-items:center}
+  .small{font-size:13px;padding:6px 8px}
+  .row{display:flex;gap:8px;align-items:center}
+  .resultado{background:rgba(255,255,255,0.02);padding:10px;border-radius:8px;margin-top:10px;color:var(--muted)}
+  footer{margin-top:12px;color:var(--muted);font-size:13px}
+  @media(max-width:980px){.grid{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
   <div class="wrap">
     <header>
-      <div>
-        <h1>Ficha — <strong>Morte Silenciosa (d20)</strong></h1>
-        <div class="note">Ficha automática — atributos, perícias, habilidades e rolagens integradas.</div>
-      </div>
-      <div class="footer-actions">
-        <button id="btnSave" class="small">Salvar (JSON)</button>
-        <button id="btnLoad" class="small">Carregar (JSON)</button>
-        <button id="btnPrint" class="small">Imprimir / PDF</button>
-        <button id="btnReset" class="small">Limpar</button>
+      <h1>🧟 Sistema Z — Ficha (Modo Escuro)</h1>
+      <div class="row">
+        <button id="exportBtn" class="btn small">Exportar JSON</button>
+        <button id="importBtn" class="btn small secondary">Importar JSON</button>
+        <input id="fileInput" type="file" accept="application/json" style="display:none" />
       </div>
     </header>
 
-    <div class="grid">
-      <!-- Left column: basic info -->
-      <div class="card col-4">
-        <label>Nome</label>
-        <input id="nome" type="text" placeholder="Nome do personagem" />
-
-        <label class="spaced">Profissão</label>
-        <select id="profissao">
-          <option value="">— Selecione —</option>
-          <option value="militar">Militar (+1 FOR, +1 AGI)</option>
-          <option value="medico">Médico (+1 MEN, +1 VIG)</option>
-          <option value="engenheiro">Engenheiro (+1 MEN, +1 FOR)</option>
-          <option value="civil">Civil (+1 AGI, +1 CAR)</option>
-          <option value="criminoso">Criminoso (+1 AGI, +1 FOR)</option>
-        </select>
-
-        <div style="margin-top:12px">
-          <div class="stat-box">
-            <div class="help">PV</div>
-            <div style="font-size:20px;margin-top:6px"><span id="pv">-</span> / <span id="pvMax">-</span></div>
-          </div>
-
-          <div class="stat-box" style="margin-top:10px">
-            <div class="help">Defesa</div>
-            <div style="font-size:20px;margin-top:6px" id="defesa">-</div>
-          </div>
-
-          <div class="stat-box" style="margin-top:10px">
-            <div class="help">Sanidade</div>
-            <div style="font-size:20px;margin-top:6px" id="sanidade">-</div>
-          </div>
+    <div class="card" style="margin-top:14px;">
+      <div style="display:flex;gap:12px;align-items:center;justify-content:space-between">
+        <div style="flex:1">
+          <label>Nome do Personagem</label>
+          <input id="nome" type="text" placeholder="Ex: Ana Silva">
         </div>
-
-        <div style="margin-top:12px">
-          <label>Armadura (bônus)</label>
-          <input id="armadura" type="number" value="0" />
+        <div style="width:260px">
+          <label>Origem / Background</label>
+          <select id="origem"></select>
         </div>
-
-        <div style="margin-top:12px">
-          <label>PV perdidos</label>
-          <input id="pvDamage" type="number" value="0" min="0" />
-        </div>
-
       </div>
-
-      <!-- Right: attributes and skills -->
-      <div class="card col-8">
-        <div style="display:flex;gap:12px;align-items:flex-start">
-          <div style="flex:1">
-            <label>Atributos</label>
-            <div class="attrs">
-              <div class="attr">
-                <h3>FOR</h3>
-                <div class="val" id="valFOR">0</div>
-                <div class="attr-controls">
-                  <button data-attr="FOR" class="dec small">-</button>
-                  <button data-attr="FOR" class="inc small">+</button>
-                </div>
-              </div>
-
-              <div class="attr">
-                <h3>AGI</h3>
-                <div class="val" id="valAGI">0</div>
-                <div class="attr-controls">
-                  <button data-attr="AGI" class="dec small">-</button>
-                  <button data-attr="AGI" class="inc small">+</button>
-                </div>
-              </div>
-
-              <div class="attr">
-                <h3>VIG</h3>
-                <div class="val" id="valVIG">0</div>
-                <div class="attr-controls">
-                  <button data-attr="VIG" class="dec small">-</button>
-                  <button data-attr="VIG" class="inc small">+</button>
-                </div>
-              </div>
-
-              <div class="attr">
-                <h3>MEN</h3>
-                <div class="val" id="valMEN">0</div>
-                <div class="attr-controls">
-                  <button data-attr="MEN" class="dec small">-</button>
-                  <button data-attr="MEN" class="inc small">+</button>
-                </div>
-              </div>
-
-              <div class="attr">
-                <h3>CAR</h3>
-                <div class="val" id="valCAR">0</div>
-                <div class="attr-controls">
-                  <button data-attr="CAR" class="dec small">-</button>
-                  <button data-attr="CAR" class="inc small">+</button>
-                </div>
-              </div>
-            </div>
-
-            <div style="margin-top:10px" class="note">Pontos restantes: <strong id="ptsRest">5</strong></div>
-          </div>
-
-          <div style="width:320px">
-            <div class="stat-box">
-              <div class="help">Bônus da profissão</div>
-              <div id="profBonus" style="margin-top:8px">Nenhum</div>
-            </div>
-
-            <div class="stat-box" style="margin-top:10px">
-              <div class="help">Habilidades (escolha até 2)</div>
-              <div class="abilities" id="abilities"></div>
-            </div>
-          </div>
-        </div>
-
-        <div style="margin-top:12px">
-          <label>Perícias</label>
-          <div class="skills-list" id="skills"></div>
-        </div>
-
-        <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
-          <select id="skillRollSelect"></select>
-          <input id="rollMod" type="number" value="0" style="width:80px" />
-          <button id="btnRollSkill" class="small btn-accent">Rolar Teste</button>
-          <div style="margin-left:10px;color:var(--muted)">Resultado: <strong id="rollOut">—</strong></div>
-        </div>
-
+      <div class="note" style="margin-top:10px">
+        Atributos começam em <strong>1</strong>. Você tem <strong id="poolText">5</strong> pontos para distribuir (cada ponto aumenta 1 atributo). Atributos variam de <strong>0</strong> (mínimo) até <strong>4</strong> (máximo).
       </div>
-
-      <!-- lower left: inventory & notes -->
-      <div class="card col-6">
-        <label>Armas</label>
-        <textarea id="weapons" placeholder="Ex: Pistola (1d8)"></textarea>
-        <label style="margin-top:8px">Inventário</label>
-        <textarea id="inventory" placeholder="Munição, comida, água..."></textarea>
-      </div>
-
-      <!-- lower right: save/load/export -->
-      <div class="card col-6">
-        <label>Traumas / Notas</label>
-        <textarea id="notes"></textarea>
-
-        <div style="margin-top:12px;display:flex;gap:8px">
-          <button id="exportBtn" class="small">Exportar JSON</button>
-          <input id="fileInput" type="file" accept="application/json" style="display:none" />
-          <button id="importBtn" class="small">Importar JSON</button>
-          <button id="prefillBtn" class="small">Exemplo</button>
-        </div>
-
-        <div style="margin-top:12px" class="note">Use o botão imprimir para gerar PDF via navegador.</div>
-      </div>
-
     </div>
+
+    <div class="grid">
+      <!-- Left -->
+      <div>
+        <div class="card">
+          <label>Atributos</label>
+          <div class="attrs" id="attrsBox"></div>
+          <div class="row" style="margin-top:10px;justify-content:space-between">
+            <div class="note">Pontos restantes: <strong id="pointsLeft">5</strong></div>
+            <div class="note">Nota: reduzir de 1 → 0 devolve 1 ponto.</div>
+          </div>
+
+          <hr style="margin:12px 0;border-color:rgba(255,255,255,0.03)">
+
+          <label>Perícias (selecione nível)</label>
+          <div class="skills" id="skillsBox"></div>
+          <div class="note" style="margin-top:8px">Treinado = +2, Especialista = +4. Origem aplica bônus automaticamente nas perícias.</div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <label>Equipamento</label>
+          <textarea id="equip" placeholder="Ex: Pistola (1d8), Faca (1d6)"></textarea>
+          <label style="margin-top:8px">Notas</label>
+          <textarea id="notes"></textarea>
+        </div>
+      </div>
+
+      <!-- Right -->
+      <div>
+        <div class="card">
+          <label>Resumo / Visualização</label>
+          <div id="summary" class="resultado">Altere atributos, origem ou perícias para ver os bônus aplicados.</div>
+
+          <div style="margin-top:12px;display:flex;gap:8px">
+            <button id="saveLocal" class="btn" style="flex:1">Salvar local</button>
+            <button id="loadLocal" class="btn secondary" style="flex:1">Carregar local</button>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <label>Perícias afetadas pela origem</label>
+          <div id="originEffects" class="note"></div>
+        </div>
+      </div>
+    </div>
+
+    <footer>Observação: atributo determina quantos d20 você rolaria (pega o maior). Se atributo = 0, rola 2d20 e pega o pior. Origem fornece bônus direto nas perícias (somado ao nível escolhido).</footer>
   </div>
 
-  <script>
-    // --- Dados iniciais ---
-    const ATTRS = ['FOR','AGI','VIG','MEN','CAR']
-    const MAX_POINTS = 5
-    const abilitiesData = [
-      {id:'sanguefrio',name:'Sangue Frio',desc:'+2 em testes de Sanidade',apply:(s)=>{s.sanityBonus+=2}},
-      {id:'sobrevivente',name:'Sobrevivente Nato',desc:'+2 em Sobrevivência',apply:(s)=>{s.skillBonuses['Sobrevivência']=(s.skillBonuses['Sobrevivência']||0)+2}},
-      {id:'maoFirme',name:'Mão Firme',desc:'+1 em Armas de Fogo',apply:(s)=>{s.skillBonuses['Armas de Fogo']=(s.skillBonuses['Armas de Fogo']||0)+1}},
-      {id:'primeiros',name:'Primeiros Socorros',desc:'Medicina: role duas vezes e escolha o melhor (UI manda ambos resultados)',apply:(s)=>{s.doubleMedicine=true}},
-      {id:'instinto',name:'Instinto Animal',desc:'Detecta perigo próximo 1 vez por sessão (manual)',apply:(s)=>{s.hasInstinct=true}}
-    ]
+<script>
+/* ========== CONFIG ========== */
+const MAX_ATTR = 4;
+const MIN_ATTR = 0;
+const START_ATTR = 1;
+const POINT_POOL = 5;
 
-    const skillsList = [
-      {name:'Atletismo',attr:'FOR'},
-      {name:'Briga',attr:'FOR'},
-      {name:'Armas de Fogo',attr:'AGI'},
-      {name:'Furtividade',attr:'AGI'},
-      {name:'Sobrevivência',attr:'MEN'},
-      {name:'Investigação',attr:'MEN'},
-      {name:'Medicina',attr:'MEN'},
-      {name:'Persuasão',attr:'CAR'},
-      {name:'Enganação',attr:'CAR'},
-      {name:'Resistência',attr:'VIG'}
-    ]
+const ATTR_KEYS = ['forca','agilidade','vigor','intelecto','carisma'];
+const ATTR_LABELS = { forca:'Força', agilidade:'Agilidade', vigor:'Vigor', intelecto:'Intelecto', carisma:'Carisma' };
 
-    // Estado
-    const state = {
-      attrs: {FOR:0,AGI:0,VIG:0,MEN:0,CAR:0},
-      prof: '',
-      ptsExtraFromNeg:-0,
-      pointsLeft:MAX_POINTS,
-      abilities:[],
-      skillBonuses:{},
-      sanityBonus:0,
-      doubleMedicine:false,
-      hasInstinct:false
+/* skills list */
+const SKILLS = [
+  { id:'atletismo', label:'Atletismo', attr:'forca' },
+  { id:'briga', label:'Briga', attr:'forca' },
+  { id:'armasBrancas', label:'Armas Brancas', attr:'forca' },
+  { id:'armasFogo', label:'Armas de Fogo', attr:'agilidade' },
+  { id:'furtividade', label:'Furtividade', attr:'agilidade' },
+  { id:'pontaria', label:'Pontaria', attr:'agilidade' },
+  { id:'reflexos', label:'Reflexos', attr:'agilidade' },
+  { id:'resistencia', label:'Resistência', attr:'vigor' },
+  { id:'sobrevivencia', label:'Sobrevivência', attr:'vigor' },
+  { id:'medicina', label:'Medicina', attr:'intelecto' },
+  { id:'investigacao', label:'Investigação', attr:'intelecto' },
+  { id:'engenharia', label:'Engenharia', attr:'intelecto' },
+  { id:'persuasao', label:'Persuasão', attr:'carisma' },
+  { id:'intimidacao', label:'Intimidação', attr:'carisma' },
+  { id:'empatia', label:'Empatia', attr:'carisma' }
+];
+
+/* origins — each maps skillId -> bonus (2 or 4) */
+const ORIGENS = {
+  'nenhuma': {},
+  'militar': { 'armasFogo':2, 'reflexos':2 },
+  'cientista': { 'investigacao':2, 'medicina':4 },
+  'detetive': { 'investigacao':2, 'percepcao':2 }, // percepcao not in list but harmless
+  'medico': { 'medicina':4, 'empatia':2 },
+  'artista': { 'persuasao':2, 'empatia':2 },
+  'criminoso': { 'furtividade':2, 'intimidacao':2 },
+  'religioso': { 'empatia':2, 'persuasao':2 },
+  'tecnico': { 'engenharia':2, 'armasFogo':2 },
+  'explorador': { 'sobrevivencia':2, 'atletismo':2 },
+  'academico': { 'investigacao':2, 'engenharia':2 }
+};
+
+/* ========== STATE ========== */
+let state = {
+  name: '',
+  origin: 'nenhuma',
+  attrs: {},
+  skillLevel: {}, // skillId -> 0/2/4 (player chosen)
+  equip: '',
+  notes: ''
+};
+
+/* initialize default attrs = 1 */
+function resetStateDefaults(){
+  ATTR_KEYS.forEach(k => state.attrs[k] = START_ATTR);
+  SKILLS.forEach(s => {
+    if(state.skillLevel[s.id] === undefined) state.skillLevel[s.id] = 0;
+  });
+  state.name = state.name || '';
+  state.origin = state.origin || 'nenhuma';
+  state.equip = state.equip || '';
+  state.notes = state.notes || '';
+}
+resetStateDefaults();
+
+/* ========== HELPERS ========== */
+function calcPoints(){
+  // points spent = sum(max(0, attr - START_ATTR))
+  // but decreasing below START_ATTR returns points: if attr < START_ATTR, freed = START_ATTR - attr
+  const spentAbove = Object.values(state.attrs).filter(v => v > START_ATTR).reduce((a,b)=>a+b-START_ATTR,0);
+  const freedBelow = Object.values(state.attrs).filter(v => v < START_ATTR).reduce((a,b)=>a + (START_ATTR - b),0);
+  const left = POINT_POOL + freedBelow - spentAbove;
+  return Math.max(0, left); // never negative (we prevent illegal moves)
+}
+
+function originSkillBonus(skillId){
+  const map = ORIGENS[state.origin] || {};
+  return map[skillId] || 0;
+}
+
+function totalSkillBonus(skillId){
+  const chosen = parseInt(state.skillLevel[skillId] || 0,10) || 0;
+  return chosen + originSkillBonus(skillId);
+}
+
+/* ========== RENDER UI ========== */
+const attrsBox = document.getElementById('attrsBox');
+const pointsLeftEl = document.getElementById('pointsLeft');
+const skillsBox = document.getElementById('skillsBox');
+const summaryDiv = document.getElementById('summary');
+const origemSelect = document.getElementById('origem');
+const originEffects = document.getElementById('originEffects');
+
+function renderOriginOptions(){
+  origemSelect.innerHTML = '';
+  Object.keys(ORIGENS).forEach(k=>{
+    const opt = document.createElement('option');
+    opt.value = k;
+    opt.textContent = (k === 'nenhuma') ? '— Nenhuma —' : `${k.charAt(0).toUpperCase()+k.slice(1)}`;
+    origemSelect.appendChild(opt);
+  });
+  origemSelect.value = state.origin;
+}
+
+function renderAttrs(){
+  attrsBox.innerHTML = '';
+  ATTR_KEYS.forEach(k=>{
+    const div = document.createElement('div');
+    div.className = 'attr';
+    const val = state.attrs[k];
+    div.innerHTML = `
+      <div class="name">${ATTR_LABELS[k]}</div>
+      <div class="val" id="val_${k}">${val}</div>
+      <div style="font-size:12px;color:var(--muted)">${val===0 ? 'efeito: 0 (2d20 -> pior)' : 'dados: ' + val + 'd20 (pega maior)'}</div>
+      <div class="controls" style="margin-top:8px">
+        <button class="btn small" data-act="dec" data-key="${k}">-</button>
+        <button class="btn small" data-act="inc" data-key="${k}">+</button>
+      </div>
+    `;
+    attrsBox.appendChild(div);
+  });
+
+  // attach handlers
+  document.querySelectorAll('button[data-act]').forEach(b=>{
+    b.addEventListener('click', ()=> {
+      const act = b.dataset.act;
+      const key = b.dataset.key;
+      if(act === 'inc') incAttr(key);
+      else decAttr(key);
+    });
+  });
+
+  pointsLeftEl.textContent = calcPoints();
+}
+
+function renderSkills(){
+  skillsBox.innerHTML = '';
+  SKILLS.forEach(s=>{
+    const chosen = state.skillLevel[s.id] || 0;
+    const originBonus = originSkillBonus(s.id);
+    const total = chosen + originBonus;
+    const div = document.createElement('div');
+    div.className = 'skill';
+    div.innerHTML = `
+      <div style="min-width:55%">
+        <b>${s.label}</b>
+        <div class="note" style="font-size:12px">${ATTR_LABELS[s.attr]}</div>
+      </div>
+      <div style="min-width:40%;text-align:right">
+        <select data-skill="${s.id}" class="skillSelect">
+          <option value="0"${chosen===0?' selected':''}>Nenhum (0)</option>
+          <option value="2"${chosen===2?' selected':''}>Treinado (+2)</option>
+          <option value="4"${chosen===4?' selected':''}>Especialista (+4)</option>
+        </select>
+        <div style="font-size:12px;color:var(--muted);margin-top:6px">Origem: ${originBonus>0? '+'+originBonus : '—'} — Total: <strong>${total>=0? '+'+total : total}</strong></div>
+      </div>
+    `;
+    skillsBox.appendChild(div);
+  });
+
+  // listeners
+  document.querySelectorAll('.skillSelect').forEach(sel=>{
+    sel.addEventListener('change', ()=>{
+      const id = sel.dataset.skill;
+      state.skillLevel[id] = parseInt(sel.value,10) || 0;
+      saveLocal(false);
+      renderSummary();
+    });
+  });
+}
+
+function renderOriginEffects(){
+  const map = ORIGENS[state.origin] || {};
+  const keys = Object.keys(map);
+  if(keys.length===0){
+    originEffects.innerHTML = 'Nenhuma perícia recebe bônus por esta origem.';
+    return;
+  }
+  originEffects.innerHTML = keys.map(k => {
+    // find skill label
+    const lab = (SKILLS.find(s=>s.id===k)?.label) || k;
+    return `${lab}: +${map[k]}`;
+  }).join('<br>');
+}
+
+function renderSummary(){
+  // build summary showing effective skill totals and attributes
+  let html = `<div style="display:flex;flex-direction:column;gap:6px">`;
+  html += `<div><b>Nome:</b> ${state.name || '—'}</div>`;
+  html += `<div><b>Origem:</b> ${state.origin}</div>`;
+  html += `<div style="margin-top:6px"><b>Atributos:</b>`;
+  ATTR_KEYS.forEach(k => html += `<div style="font-size:13px">${ATTR_LABELS[k]}: ${state.attrs[k]}</div>`);
+  html += `</div>`;
+  html += `<div style="margin-top:6px"><b>Perícias (total = escolha + origem):</b>`;
+  SKILLS.forEach(s => {
+    const chosen = state.skillLevel[s.id] || 0;
+    const ob = originSkillBonus(s.id);
+    const total = chosen + ob;
+    html += `<div style="font-size:13px">${s.label}: escolha ${chosen>0? '+'+chosen : 0 } ${ob? ` + origem ${'+'+ob}` : '' } → <strong>${ total>0? '+'+total : total }</strong></div>`;
+  });
+  html += `</div></div>`;
+  summaryDiv.innerHTML = html;
+}
+
+/* ========== ATTRIB MUTATIONS ========== */
+function incAttr(key){
+  const cur = state.attrs[key] || START_ATTR;
+  if(cur >= MAX_ATTR) return;
+  // check points
+  const left = calcPoints();
+  if(left <= 0) {
+    alert('Sem pontos restantes.');
+    return;
+  }
+  state.attrs[key] = cur + 1;
+  saveLocal(false);
+  renderAttrs();
+  renderSummary();
+}
+
+function decAttr(key){
+  const cur = state.attrs[key] || START_ATTR;
+  if(cur <= MIN_ATTR) return;
+  // decreasing below START_ATTR frees point
+  state.attrs[key] = cur - 1;
+  saveLocal(false);
+  renderAttrs();
+  renderSummary();
+}
+
+/* ========== SAVE / LOAD (local) & IMPORT/EXPORT JSON ========== */
+const STORAGE_KEY = 'sistemaZ_ficha_v2';
+
+function saveLocal(announce=true){
+  const payload = {
+    name: state.name,
+    origin: state.origin,
+    attrs: state.attrs,
+    skillLevel: state.skillLevel,
+    equip: document.getElementById('equip').value,
+    notes: document.getElementById('notes').value
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  if(announce) alert('Ficha salva localmente.');
+}
+
+function loadLocal(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(!raw){ alert('Nenhuma ficha local encontrada.'); return; }
+  try {
+    const d = JSON.parse(raw);
+    state.name = d.name || '';
+    state.origin = d.origin || 'nenhuma';
+    state.attrs = Object.assign({}, state.attrs, d.attrs || {});
+    state.skillLevel = Object.assign({}, state.skillLevel, d.skillLevel || {});
+    document.getElementById('nome').value = state.name;
+    document.getElementById('equip').value = d.equip || '';
+    document.getElementById('notes').value = d.notes || '';
+    origemSelect.value = state.origin;
+    renderSkills();
+    renderAttrs();
+    renderSummary();
+    renderOriginEffects();
+    alert('Ficha carregada.');
+  } catch(e){ alert('Erro ao carregar ficha local.'); }
+}
+
+function exportJSON(){
+  const payload = {
+    name: state.name,
+    origin: state.origin,
+    attrs: state.attrs,
+    skillLevel: state.skillLevel,
+    equip: document.getElementById('equip').value,
+    notes: document.getElementById('notes').value,
+    exportedAt: new Date().toISOString()
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = (state.name || 'ficha') + '.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+
+function importJSONFile(file){
+  const reader = new FileReader();
+  reader.onload = ()=> {
+    try{
+      const d = JSON.parse(reader.result);
+      // basic validation
+      if(!d.attrs || !d.skillLevel){ alert('JSON inválido (faltam campos).'); return; }
+      state.name = d.name || '';
+      state.origin = d.origin || 'nenhuma';
+      state.attrs = Object.assign({}, state.attrs, d.attrs || {});
+      state.skillLevel = Object.assign({}, state.skillLevel, d.skillLevel || {});
+      document.getElementById('nome').value = state.name;
+      document.getElementById('equip').value = d.equip || '';
+      document.getElementById('notes').value = d.notes || '';
+      origemSelect.value = state.origin;
+      renderSkills();
+      renderAttrs();
+      renderSummary();
+      renderOriginEffects();
+      alert('Importação concluída.');
+    }catch(e){
+      alert('Erro ao ler JSON: ' + e.message);
     }
+  };
+  reader.readAsText(file);
+}
 
-    // Element refs
-    const els = {}
-    ATTRS.forEach(a=>els['val'+a]=document.getElementById('val'+a))
-    els.ptsRest = document.getElementById('ptsRest')
-    els.prof = document.getElementById('profissao')
-    els.profBonus = document.getElementById('profBonus')
-    els.pv = document.getElementById('pv')
-    els.pvMax = document.getElementById('pvMax')
-    els.defesa = document.getElementById('defesa')
-    els.sanidade = document.getElementById('sanidade')
-    els.armadura = document.getElementById('armadura')
-    els.pvDamage = document.getElementById('pvDamage')
-    els.abilitiesBox = document.getElementById('abilities')
-    els.skillsBox = document.getElementById('skills')
-    els.skillSelect = document.getElementById('skillRollSelect')
-    els.rollMod = document.getElementById('rollMod')
-    els.rollOut = document.getElementById('rollOut')
-    els.weapons = document.getElementById('weapons')
-    els.inventory = document.getElementById('inventory')
-    els.notes = document.getElementById('notes')
-    els.fileInput = document.getElementById('fileInput')
+/* ========== INIT ========== */
+document.getElementById('nome').addEventListener('input', e=>{ state.name = e.target.value; saveLocal(false); renderSummary(); });
+document.getElementById('equip').addEventListener('input', ()=> saveLocal(false));
+document.getElementById('notes').addEventListener('input', ()=> saveLocal(false));
 
-    // Init UI
-    function createAttrButtons(){
-      document.querySelectorAll('.inc').forEach(b=>b.addEventListener('click',e=>{
-        changeAttr(e.currentTarget.dataset.attr,1)
-      }))
-      document.querySelectorAll('.dec').forEach(b=>b.addEventListener('click',e=>{
-        changeAttr(e.currentTarget.dataset.attr,-1)
-      }))
-    }
+document.getElementById('saveLocal').addEventListener('click', ()=>{ state.name = document.getElementById('nome').value; saveLocal(true); });
+document.getElementById('loadLocal').addEventListener('click', loadLocal);
 
-    function updateProfUI(){
-      const p = state.prof
-      let text='Nenhum'
-      if(p==='militar') text='+1 FOR, +1 AGI'
-      if(p==='medico') text='+1 MEN, +1 VIG'
-      if(p==='engenheiro') text='+1 MEN, +1 FOR'
-      if(p==='civil') text='+1 AGI, +1 CAR'
-      if(p==='criminoso') text='+1 AGI, +1 FOR'
-      els.profBonus.textContent = text
-    }
+document.getElementById('exportBtn').addEventListener('click', exportJSON);
+document.getElementById('importBtn').addEventListener('click', ()=> document.getElementById('fileInput').click());
+document.getElementById('fileInput').addEventListener('change', (e)=> {
+  const f = e.target.files[0]; if(f) importJSONFile(f);
+});
 
-    els.prof.addEventListener('change',()=>{
-      state.prof = els.prof.value
-      computeAll()
-    })
+origemSelect.addEventListener('change', ()=> {
+  state.origin = origemSelect.value;
+  saveLocal(false);
+  renderSkills();
+  renderSummary();
+  renderOriginEffects();
+});
 
-    // Abilities UI
-    function renderAbilities(){
-      els.abilitiesBox.innerHTML = ''
-      abilitiesData.forEach(a=>{
-        const div = document.createElement('div')
-        const id = 'ab_'+a.id
-        div.innerHTML = `<label style="display:flex;align-items:center;gap:8px"><input type='checkbox' id='${id}' /> <div style='flex:1'><b>${a.name}</b><div class='help' style='font-size:12px'>${a.desc}</div></div></label>`
-        els.abilitiesBox.appendChild(div)
-        document.getElementById(id).addEventListener('change',()=>{
-          const checked = document.getElementById(id).checked
-          if(checked && state.abilities.length>=2){ // limit 2
-            document.getElementById(id).checked = false
-            alert('Você já escolheu 2 habilidades')
-            return
-          }
-          if(checked) state.abilities.push(a.id)
-          else state.abilities = state.abilities.filter(x=>x!==a.id)
-          applyAbilities()
-          computeAll()
-        })
-      })
-    }
+/* load from storage on start (if any) */
+(function boot(){
+  // defaults
+  resetStateDefaults();
+  // try load
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(raw){
+    try{
+      const d = JSON.parse(raw);
+      state.name = d.name || '';
+      state.origin = d.origin || 'nenhuma';
+      state.attrs = Object.assign({}, state.attrs, d.attrs || {});
+      state.skillLevel = Object.assign({}, state.skillLevel, d.skillLevel || {});
+      document.getElementById('nome').value = state.name;
+      document.getElementById('equip').value = d.equip || '';
+      document.getElementById('notes').value = d.notes || '';
+    }catch(e){}
+  }
 
-    function applyAbilities(){
-      // reset
-      state.skillBonuses = {}
-      state.sanityBonus = 0
-      state.doubleMedicine = false
-      state.hasInstinct = false
-      // apply each ability found
-      state.abilities.forEach(id=>{
-        const ab = abilitiesData.find(x=>x.id===id)
-        if(ab) ab.apply(state)
-      })
-    }
-
-    // Skills UI
-    function renderSkills(){
-      els.skillsBox.innerHTML = ''
-      els.skillSelect.innerHTML = ''
-      skillsList.forEach(s=>{
-        const div = document.createElement('div')
-        div.className = 'skill'
-        const bonus = getSkillBonus(s.name)
-        div.innerHTML = `<div><b>${s.name}</b><div class='help' style='font-size:12px'>Atributo: ${s.attr}</div></div><div style='text-align:right'><div class='chip'>+${bonus}</div><label style='display:block;font-size:12px;margin-top:6px'><input type='checkbox' data-skill='${s.name}' class='profChk' /> Treinado (+2)</label></div>`
-        els.skillsBox.appendChild(div)
-
-        const opt = document.createElement('option')
-        opt.value = s.name
-        opt.textContent = s.name + ` ( +${bonus} )`
-        els.skillSelect.appendChild(opt)
-      })
-      // attach listeners for trained checkboxes
-      document.querySelectorAll('.profChk').forEach(ch=>ch.addEventListener('change',e=>{
-        const nm = e.currentTarget.dataset.skill
-        if(e.currentTarget.checked) state.skillBonuses[nm] = (state.skillBonuses[nm]||0) + 2
-        else state.skillBonuses[nm] = (state.skillBonuses[nm]||0) - 2
-        updateSkillsDisplay()
-      }))
-    }
-
-    function updateSkillsDisplay(){
-      // update skill chips
-      const boxes = document.querySelectorAll('.skill')
-      let i=0
-      skillsList.forEach(s=>{
-        const chip = boxes[i].querySelector('.chip')
-        chip.textContent = '+' + getSkillBonus(s.name)
-        // update select text
-        const opt = els.skillSelect.options[i]
-        opt.text = s.name + ` ( +${getSkillBonus(s.name)} )`
-        i++
-      })
-    }
-
-    function getAttrEffective(attr){
-      // base attribute + profession bonus
-      let val = state.attrs[attr] || 0
-      if(state.prof==='militar' && (attr==='FOR' || attr==='AGI')) val +=1
-      if(state.prof==='medico' && (attr==='MEN' || attr==='VIG')) val +=1
-      if(state.prof==='engenheiro' && (attr==='MEN' || attr==='FOR')) val +=1
-      if(state.prof==='civil' && (attr==='AGI' || attr==='CAR')) val +=1
-      if(state.prof==='criminoso' && (attr==='AGI' || attr==='FOR')) val +=1
-      return val
-    }
-
-    function getSkillBonus(skillName){
-      const skill = skillsList.find(s=>s.name===skillName)
-      if(!skill) return 0
-      const base = getAttrEffective(skill.attr)
-      const extra = state.skillBonuses[skillName] || 0
-      // sanityBonus is separate
-      return base + extra
-    }
-
-    // Attribute change logic (with -1 gives +1 point)
-    function changeAttr(attr,delta){
-      const cur = state.attrs[attr]
-      const proposed = cur + delta
-      if(proposed < -1 || proposed > 4) return
-
-      // compute counts
-      const currentNegatives = Object.values(state.attrs).filter(v=>v===-1).length
-      let pointsAvailable = MAX_POINTS + currentNegatives - Object.values(state.attrs).filter(v=>v>0).reduce((a,b)=>a+b,0)
-
-      // apply change tentatively
-      // if we're decreasing to -1 from >=0, that will add a point
-      if(delta===-1){
-        // allowed
-      } else if(delta===1){
-        if(pointsAvailable <= 0) return
-      }
-
-      state.attrs[attr] = proposed
-
-      // recalc points after change
-      const newNegatives = Object.values(state.attrs).filter(v=>v===-1).length
-      const spent = Object.values(state.attrs).filter(v=>v>0).reduce((a,b)=>a+b,0)
-      state.pointsLeft = MAX_POINTS + newNegatives - spent
-      // reflect UI
-      ATTRS.forEach(a=>document.getElementById('val_'+a).textContent = state.attrs[a])
-      els.ptsRest.textContent = state.pointsLeft
-      computeAll()
-    }
-
-    // attach controls
-    document.querySelectorAll('.inc').forEach(b=>b.addEventListener('click',e=>changeAttr(e.currentTarget.dataset.attr,1)))
-    document.querySelectorAll('.dec').forEach(b=>b.addEventListener('click',e=>changeAttr(e.currentTarget.dataset.attr,-1)))
-
-    // compute PV, Defesa, Sanidade
-    function computeAll(){
-      // PV max = 10 + (VIG * 2)
-      const vig = getAttrEffective('VIG')
-      const pvMax = 10 + (vig * 2)
-      const damage = parseInt(els.pvDamage.value||0,10)
-      const pvNow = Math.max(0,pvMax - damage)
-      els.pvMax.textContent = pvMax
-      els.pv.textContent = pvNow
-
-      // Defesa = 10 + AGI + armadura
-      const agi = getAttrEffective('AGI')
-      const arm = parseInt(els.armadura.value||0,10)
-      els.defesa.textContent = 10 + agi + arm
-
-      // Sanidade = 10 + MEN + sanityBonus
-      const men = getAttrEffective('MEN')
-      els.sanidade.textContent = 10 + men + state.sanityBonus
-
-      // update prof bonus display
-      updateProfUI()
-
-      // update skills render
-      renderSkills()
-      updateSkillsDisplay()
-
-      // update abilities checkboxes (ensure applied)
-      applyAbilities()
-      // sync ability checkboxes state
-      abilitiesData.forEach(a=>{
-        const el = document.getElementById('ab_'+a.id)
-        if(el) el.checked = state.abilities.includes(a.id)
-      })
-
-      // update attr numbers
-      ATTRS.forEach(a=>document.getElementById('val_'+a).textContent = state.attrs[a])
-    }
-
-    // Skill roll
-    function d20(){return Math.floor(Math.random()*20)+1}
-    document.getElementById('btnRollSkill').addEventListener('click',()=>{
-      const skillName = els.skillSelect.value
-      const mod = parseInt(els.rollMod.value||0,10)
-      const base = getSkillBonus(skillName)
-      const roll = d20()
-      const total = roll + base + mod
-      let verdict = ''
-      if(roll===20) verdict = 'Sucesso espetacular (crítico)'
-      else if(roll===1) verdict = 'Falha crítica'
-      else if(total >= 20) verdict = 'Sucesso total'
-      else if(total >= 15) verdict = 'Sucesso com custo'
-      else if(total >= 10) verdict = 'Sucesso parcial'
-      else verdict = 'Falha'
-
-      // special: if skill is Medicina and player has doubleMedicine
-      let extraNote = ''
-      if(skillName==='Medicina' && state.doubleMedicine){
-        const roll2 = d20(); const total2 = roll2 + base + mod
-        extraNote = ` | Medicina (2 rolls): ${roll} vs ${roll2} => escolha melhor (${Math.max(roll+base+mod,total2)})`
-      }
-
-      els.rollOut.textContent = `${roll} + ${base} + ${mod} = ${total} → ${verdict}${extraNote}`
-    })
-
-    // Save / Load JSON
-    function gather(){
-      return {
-        nome: document.getElementById('nome').value,
-        profissao: document.getElementById('profissao').value,
-        atributos: state.attrs,
-        pointsLeft: state.pointsLeft,
-        abilities: state.abilities,
-        skillBonuses: state.skillBonuses,
-        weapons: els.weapons.value,
-        inventory: els.inventory.value,
-        notes: els.notes.value,
-        pvDamage: parseInt(els.pvDamage.value||0,10),
-        armadura: parseInt(els.armadura.value||0,10)
-      }
-    }
-
-    document.getElementById('exportBtn').addEventListener('click',()=>{
-      const data = gather()
-      const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'})
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a'); a.href = url; a.download = (data.nome||'ficha') + '.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url)
-    })
-
-    document.getElementById('importBtn').addEventListener('click',()=>els.fileInput.click())
-    els.fileInput.addEventListener('change',async(e)=>{
-      const f = e.target.files[0]; if(!f) return
-      const txt = await f.text(); try{ const j = JSON.parse(txt); loadFromJSON(j)}catch(err){alert('JSON inválido')}
-    })
-
-    function loadFromJSON(j){
-      document.getElementById('nome').value = j.nome||''
-      document.getElementById('profissao').value = j.profissao||''
-      state.prof = j.profissao||''
-      ATTRS.forEach(a=>state.attrs[a] = (j.atributos && (j.atributos[a]!==undefined))? j.atributos[a] : 0)
-      state.pointsLeft = j.pointsLeft||MAX_POINTS
-      state.abilities = j.abilities||[]
-      state.skillBonuses = j.skillBonuses || {}
-      els.weapons.value = j.weapons||''
-      els.inventory.value = j.inventory||''
-      els.notes.value = j.notes||''
-      els.pvDamage.value = j.pvDamage||0
-      els.armadura.value = j.armadura||0
-      // ensure abilities boxes reflect state
-      renderAbilities()
-      computeAll()
-    }
-
-    // Buttons top
-    document.getElementById('btnSave').addEventListener('click',()=>document.getElementById('exportBtn').click())
-    document.getElementById('btnLoad').addEventListener('click',()=>document.getElementById('importBtn').click())
-    document.getElementById('btnPrint').addEventListener('click',()=>window.print())
-    document.getElementById('btnReset').addEventListener('click',()=>{if(confirm('Limpar ficha?')) location.reload()})
-
-    // prefill example
-    document.getElementById('prefillBtn').addEventListener('click',()=>{
-      document.getElementById('nome').value = 'Ana Silva'
-      document.getElementById('profissao').value = 'civil'
-      state.prof = 'civil'
-      state.attrs = {FOR:1,AGI:2,VIG:1,MEN:0,CAR:1}
-      state.abilities = ['sobrevivente','maoFirme']
-      els.weapons.value = 'Faca (1d6), Pistola (1d8)'
-      els.inventory.value = 'Munição x8, 2 enlatados, Garrafa d\'água'
-      els.notes.value = 'Medo de locais fechados'
-      els.pvDamage.value = 0
-      els.armadura.value = 0
-      renderAbilities()
-      computeAll()
-    })
-
-    // first render
-    renderAbilities()
-    computeAll()
-
-  </script>
+  renderOriginOptions();
+  renderSkills();
+  renderAttrs();
+  renderSummary();
+  renderOriginEffects();
+})();
+</script>
 </body>
 </html>
