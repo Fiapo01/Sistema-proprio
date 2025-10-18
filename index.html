@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Ficha — Sistema Z (Modo Escuro)</title>
+<title>Ficha — Sistema Z</title>
 <style>
   :root{
     --bg:#07070a;
@@ -14,6 +14,9 @@
   }
   *{box-sizing:border-box}
   body{margin:0;font-family:Inter,system-ui,Segoe UI,Arial;background:linear-gradient(180deg,var(--bg),#04101a);color:#e7eef8;padding:18px}
+  /* Força as cores essenciais caso algum script tenha aplicado estilos inline inesperados */
+  body, .wrap, .card, label, input, textarea, select, .resultado { color: #e7eef8 !important; }
+  .note, .attr .name { color: var(--muted) !important; }
   .wrap{max-width:1100px;margin:0 auto}
   header{display:flex;justify-content:space-between;align-items:center;gap:12px}
   h1{margin:0;color:var(--accent);font-size:20px}
@@ -36,19 +39,67 @@
   .row{display:flex;gap:8px;align-items:center}
   .resultado{background:rgba(255,255,255,0.02);padding:10px;border-radius:8px;margin-top:10px;color:var(--muted)}
   footer{margin-top:12px;color:var(--muted);font-size:13px}
+  .statusBox .attr{background:rgba(255,255,255,0.05);}
+  /* Quebra de página ao imprimir/exportar para PDF */
+  .page-break{page-break-before:always;break-before:always;margin-top:24px}
+  @media print{.page-break{display:block}} 
+  .inventory-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:600px){.inventory-grid{grid-template-columns:1fr}}
   @media(max-width:980px){.grid{grid-template-columns:1fr}}
+  /* Estilo para dropdown no modo escuro */
+  select {
+    background-color: #111827; /* Fundo escuro */
+    color: #f3f4f6; /* Texto claro */
+    border: 1px solid #374151;
+    border-radius: 8px;
+    padding: 5px;
+  }
+
+  /* Corrige a cor da lista aberta */
+  option {
+    background-color: #111827;
+    color: #f3f4f6;
+  }
+
+  /* Efeito hover nas opções */
+  option:hover {
+    background-color: #1f2937;
+  }
 </style>
 </head>
 <body>
   <div class="wrap">
     <header>
-      <h1>🧟 Sistema Z — Ficha (Modo Escuro)</h1>
-      <div class="row">
-        <button id="exportBtn" class="btn small">Exportar JSON</button>
-        <button id="importBtn" class="btn small secondary">Importar JSON</button>
-        <input id="fileInput" type="file" accept="application/json" style="display:none" />
-      </div>
+      <h1>🧟 Sistema Z — Ficha</h1>
     </header>
+
+    <!-- STATUS -->
+    <div class="card statusBox" style="margin-top:14px;">
+      <label>Status</label>
+      <div class="attrs">
+        <div class="attr">
+          <div class="name">Vida</div>
+          <div class="val"><span id="vidaAtual">--</span> / <span id="vidaMax">--</span></div>
+          <div class="controls">
+            <button class="btn small" id="vidaMenos">-</button>
+            <button class="btn small" id="vidaMais">+</button>
+          </div>
+        </div>
+        <div class="attr">
+          <div class="name">Sanidade</div>
+          <div class="val"><span id="sanAtual">--</span> / <span id="sanMax">--</span></div>
+          <div class="controls">
+            <button class="btn small" id="sanMenos">-</button>
+            <button class="btn small" id="sanMais">+</button>
+          </div>
+        </div>
+        <div class="attr">
+          <div class="name">Defesa</div>
+          <div class="val" id="defVal">--</div>
+        </div>
+      </div>
+      <div id="statusMsg" class="note" style="margin-top:8px;text-align:center;"></div>
+    </div>
 
     <div class="card" style="margin-top:14px;">
       <div style="display:flex;gap:12px;align-items:center;justify-content:space-between">
@@ -57,421 +108,645 @@
           <input id="nome" type="text" placeholder="Ex: Ana Silva">
         </div>
         <div style="width:260px">
-          <label>Origem / Background</label>
+          <label>Origem</label>
           <select id="origem"></select>
         </div>
-      </div>
-      <div class="note" style="margin-top:10px">
-        Atributos começam em <strong>1</strong>. Você tem <strong id="poolText">5</strong> pontos para distribuir (cada ponto aumenta 1 atributo). Atributos variam de <strong>0</strong> (mínimo) até <strong>4</strong> (máximo).
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn" id="saveBtn">💾 Salvar Ficha</button>
+          <button class="btn secondary" id="loadBtn">📂 Carregar Ficha</button>
+          <input id="loadInput" type="file" accept=".json,application/json" style="display:none" />
+        </div>
       </div>
     </div>
 
     <div class="grid">
-      <!-- Left -->
       <div>
         <div class="card">
           <label>Atributos</label>
           <div class="attrs" id="attrsBox"></div>
-          <div class="row" style="margin-top:10px;justify-content:space-between">
-            <div class="note">Pontos restantes: <strong id="pointsLeft">5</strong></div>
-            <div class="note">Nota: reduzir de 1 → 0 devolve 1 ponto.</div>
-          </div>
-
-          <hr style="margin:12px 0;border-color:rgba(255,255,255,0.03)">
-
-          <label>Perícias (selecione nível)</label>
-          <div class="skills" id="skillsBox"></div>
-          <div class="note" style="margin-top:8px">Treinado = +2, Especialista = +4. Origem aplica bônus automaticamente nas perícias.</div>
+          <div class="note" style="margin-top:10px">Pontos restantes: <strong id="pointsLeft">5</strong></div>
         </div>
 
         <div class="card" style="margin-top:12px">
-          <label>Equipamento</label>
-          <textarea id="equip" placeholder="Ex: Pistola (1d8), Faca (1d6)"></textarea>
-          <label style="margin-top:8px">Notas</label>
-          <textarea id="notes"></textarea>
+          <label>Perícias</label>
+          <div class="skills" id="skillsBox"></div>
         </div>
+
+        <!-- Equipamento removido (migrado para a página de Inventário no PDF) -->
       </div>
 
-      <!-- Right -->
       <div>
         <div class="card">
-          <label>Resumo / Visualização</label>
-          <div id="summary" class="resultado">Altere atributos, origem ou perícias para ver os bônus aplicados.</div>
-
-          <div style="margin-top:12px;display:flex;gap:8px">
-            <button id="saveLocal" class="btn" style="flex:1">Salvar local</button>
-            <button id="loadLocal" class="btn secondary" style="flex:1">Carregar local</button>
-          </div>
+          <label>Resumo</label>
+          <div id="summary" class="resultado"></div>
         </div>
-
-        <div class="card" style="margin-top:12px">
-          <label>Perícias afetadas pela origem</label>
-          <div id="originEffects" class="note"></div>
+    
         </div>
       </div>
     </div>
 
-    <footer>Observação: atributo determina quantos d20 você rolaria (pega o maior). Se atributo = 0, rola 2d20 e pega o pior. Origem fornece bônus direto nas perícias (somado ao nível escolhido).</footer>
+
+    <!-- Página separada para Inventário (será exportada como nova página no PDF) -->
+    <div class="page-break">
+      <div class="card">
+        <h2 style="margin-top:0;color:var(--accent)">Inventário</h2>
+        <div class="inventory-grid">
+          <div>
+            <label>Armas</label>
+            <!-- Controles de seleção de armas e indicador de carga serão inseridos aqui -->
+            <div id="weaponsControls" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px">
+              <div style="display:flex;gap:8px;align-items:center">
+                <select id="selectArma" style="flex:1;padding:6px;border-radius:6px;background:transparent;color:inherit"></select>
+                <button id="addArmaBtn" class="btn small">Adicionar Arma</button>
+              </div>
+              <p id="cargaInfo" style="margin:0;font-weight:bold"></p>
+              <ul id="listaArmas" style="list-style:none;padding:0;margin:0"></ul>
+            </div>
+            <textarea id="inventoryWeapons" style="min-height:400px"></textarea>
+          </div>
+          <div>
+            <label>Geral</label>
+            <textarea id="inventoryGeneral" style="min-height:400px"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
 <script>
-/* ========== CONFIG ========== */
-const MAX_ATTR = 4;
-const MIN_ATTR = 0;
-const START_ATTR = 1;
-const POINT_POOL = 5;
+const MAX_ATTR=4,MIN_ATTR=0,START_ATTR=1,POINT_POOL=5;
+const ATTR_KEYS=['forca','agilidade','vigor','intelecto','presenca'];
+const ATTR_LABELS={forca:'Força',agilidade:'Agilidade',vigor:'Vigor',intelecto:'Intelecto',presenca:'Presença'};
 
-const ATTR_KEYS = ['forca','agilidade','vigor','intelecto','carisma'];
-const ATTR_LABELS = { forca:'Força', agilidade:'Agilidade', vigor:'Vigor', intelecto:'Intelecto', carisma:'Carisma' };
-
-/* skills list */
-const SKILLS = [
-  { id:'atletismo', label:'Atletismo', attr:'forca' },
-  { id:'briga', label:'Briga', attr:'forca' },
-  { id:'armasBrancas', label:'Armas Brancas', attr:'forca' },
-  { id:'armasFogo', label:'Armas de Fogo', attr:'agilidade' },
-  { id:'furtividade', label:'Furtividade', attr:'agilidade' },
-  { id:'pontaria', label:'Pontaria', attr:'agilidade' },
-  { id:'reflexos', label:'Reflexos', attr:'agilidade' },
-  { id:'resistencia', label:'Resistência', attr:'vigor' },
-  { id:'sobrevivencia', label:'Sobrevivência', attr:'vigor' },
-  { id:'medicina', label:'Medicina', attr:'intelecto' },
-  { id:'investigacao', label:'Investigação', attr:'intelecto' },
-  { id:'engenharia', label:'Engenharia', attr:'intelecto' },
-  { id:'persuasao', label:'Persuasão', attr:'carisma' },
-  { id:'intimidacao', label:'Intimidação', attr:'carisma' },
-  { id:'empatia', label:'Empatia', attr:'carisma' }
+// === PERÍCIAS ===
+const SKILLS=[
+  {id:'atletismo',label:'Atletismo',attr:'agilidade'},
+  {id:'acrobacia',label:'Acrobacia',attr:'forca'},
+  {id:'luta',label:'Luta',attr:'forca'},
+  {id:'furtividade',label:'Furtividade',attr:'agilidade'},
+  {id:'pontaria',label:'Pontaria',attr:'agilidade'},
+  {id:'reflexos',label:'Reflexos',attr:'agilidade'},
+  {id:'resistencia',label:'Resistência',attr:'vigor'},
+  {id:'sobrevivencia',label:'Sobrevivência',attr:'vigor'},
+  {id:'medicina',label:'Medicina',attr:'intelecto'},
+  {id:'investigacao',label:'Investigação',attr:'intelecto'},
+  {id:'engenharia',label:'Engenharia',attr:'intelecto'},
+  {id:'enganacao',label:'Enganação',attr:'presenca'},
+  {id:'intimidacao',label:'Intimidação',attr:'presenca'},
+  {id:'diplomacia',label:'Diplomacia',attr:'presenca'},
+  {id:'vontade',label:'Vontade',attr:'presenca'},
+  {id:'pilotagem',label:'Pilotagem',attr:'agilidade'},
+  {id:'percepcao',label:'Percepção',attr:'presenca'},
+  {id:'crime',label:'Crime',attr:'intelecto'},
+  {id:'religiao',label:'Religião',attr:'presenca'},
+  {id:'adetramento',label:'Adestramento',attr:'presenca'}
 ];
 
-/* origins — each maps skillId -> bonus (2 or 4) */
-const ORIGENS = {
-  'nenhuma': {},
-  'militar': { 'armasFogo':2, 'reflexos':2 },
-  'cientista': { 'investigacao':2, 'medicina':4 },
-  'detetive': { 'investigacao':2, 'percepcao':2 }, // percepcao not in list but harmless
-  'medico': { 'medicina':4, 'empatia':2 },
-  'artista': { 'persuasao':2, 'empatia':2 },
-  'criminoso': { 'furtividade':2, 'intimidacao':2 },
-  'religioso': { 'empatia':2, 'persuasao':2 },
-  'tecnico': { 'engenharia':2, 'armasFogo':2 },
-  'explorador': { 'sobrevivencia':2, 'atletismo':2 },
-  'academico': { 'investigacao':2, 'engenharia':2 }
+const ORIGENS={
+  'nenhuma':{},
+  'militar':{'pontaria':4,'sobrevivencia':2},
+  'cientista':{'investigacao':2,'medicina':4},
+  'policial':{'investigacao':2,'pontaria':4},
+  'criminoso':{'furtividade':2,'crime':4},
+  'religioso':{'vontade':4,'diplomacia':2},
+  'tecnico':{'engenharia':4,'enganacao':2},
+  'explorador':{'sobrevivencia':4,'atletismo':2},
+  'lutador':{'luta':4,'resistencia':2},
+  'medico':{'medicina':4,'diplomacia':2},
+  'motorista':{'pilotagem':4,'percepcao':2},
+  'religioso':{'religiao':4,'diplomacia':2},
+  'investigador':{'investigacao':4,'intimidacao':2},
+  'amigo dos animais':{'adestramento':4,'diplomacia':2},
+  'ator':{'enganacao':4,'':2}
 };
 
-/* ========== STATE ========== */
-let state = {
-  name: '',
-  origin: 'nenhuma',
-  attrs: {},
-  skillLevel: {}, // skillId -> 0/2/4 (player chosen)
-  equip: '',
-  notes: ''
-};
+let state={name:'',origin:'nenhuma',attrs:{},skillLevel:{},vidaAtual:0,sanAtual:0,inventario:{armas:[],geral:""}};
 
-/* initialize default attrs = 1 */
-function resetStateDefaults(){
-  ATTR_KEYS.forEach(k => state.attrs[k] = START_ATTR);
-  SKILLS.forEach(s => {
-    if(state.skillLevel[s.id] === undefined) state.skillLevel[s.id] = 0;
-  });
-  state.name = state.name || '';
-  state.origin = state.origin || 'nenhuma';
-  state.equip = state.equip || '';
-  state.notes = state.notes || '';
-}
-resetStateDefaults();
+ATTR_KEYS.forEach(k=>state.attrs[k]=START_ATTR);
+SKILLS.forEach(s=>state.skillLevel[s.id]=0);
 
-/* ========== HELPERS ========== */
 function calcPoints(){
-  // points spent = sum(max(0, attr - START_ATTR))
-  // but decreasing below START_ATTR returns points: if attr < START_ATTR, freed = START_ATTR - attr
-  const spentAbove = Object.values(state.attrs).filter(v => v > START_ATTR).reduce((a,b)=>a+b-START_ATTR,0);
-  const freedBelow = Object.values(state.attrs).filter(v => v < START_ATTR).reduce((a,b)=>a + (START_ATTR - b),0);
-  const left = POINT_POOL + freedBelow - spentAbove;
-  return Math.max(0, left); // never negative (we prevent illegal moves)
+  const spentAbove=Object.values(state.attrs).filter(v=>v>START_ATTR).reduce((a,b)=>a+b-START_ATTR,0);
+  const freedBelow=Object.values(state.attrs).filter(v=>v<START_ATTR).reduce((a,b)=>a+(START_ATTR-b),0);
+  return Math.max(0,POINT_POOL+freedBelow-spentAbove);
 }
+function originSkillBonus(id){return ORIGENS[state.origin]?.[id]||0;}
+function totalSkillBonus(id){return (state.skillLevel[id]||0)+originSkillBonus(id);}
 
-function originSkillBonus(skillId){
-  const map = ORIGENS[state.origin] || {};
-  return map[skillId] || 0;
-}
-
-function totalSkillBonus(skillId){
-  const chosen = parseInt(state.skillLevel[skillId] || 0,10) || 0;
-  return chosen + originSkillBonus(skillId);
-}
-
-/* ========== RENDER UI ========== */
-const attrsBox = document.getElementById('attrsBox');
-const pointsLeftEl = document.getElementById('pointsLeft');
-const skillsBox = document.getElementById('skillsBox');
-const summaryDiv = document.getElementById('summary');
-const origemSelect = document.getElementById('origem');
-const originEffects = document.getElementById('originEffects');
-
-function renderOriginOptions(){
-  origemSelect.innerHTML = '';
-  Object.keys(ORIGENS).forEach(k=>{
-    const opt = document.createElement('option');
-    opt.value = k;
-    opt.textContent = (k === 'nenhuma') ? '— Nenhuma —' : `${k.charAt(0).toUpperCase()+k.slice(1)}`;
-    origemSelect.appendChild(opt);
-  });
-  origemSelect.value = state.origin;
+function calcStatus(){
+  const vidaMax=10+state.attrs.vigor*4;
+  const sanMax=8+state.attrs.presenca*2;
+  const def=10+state.attrs.forca*3;
+  if(state.vidaAtual>vidaMax)state.vidaAtual=vidaMax;
+  if(state.sanAtual>sanMax)state.sanAtual=sanMax;
+  document.getElementById('vidaMax').textContent=vidaMax;
+  document.getElementById('sanMax').textContent=sanMax;
+  document.getElementById('defVal').textContent=def;
+  document.getElementById('vidaAtual').textContent=state.vidaAtual;
+  document.getElementById('sanAtual').textContent=state.sanAtual;
+  let msg='';
+  if(state.vidaAtual<=0)msg='💀 Você está morto.';
+  else if(state.sanAtual<=0)msg='🧠 Você enlouqueceu.';
+  document.getElementById('statusMsg').textContent=msg;
 }
 
 function renderAttrs(){
-  attrsBox.innerHTML = '';
+  const box=document.getElementById('attrsBox'); box.innerHTML='';
   ATTR_KEYS.forEach(k=>{
-    const div = document.createElement('div');
-    div.className = 'attr';
-    const val = state.attrs[k];
-    div.innerHTML = `
+    const div=document.createElement('div');
+    div.className='attr';
+    div.innerHTML=`
       <div class="name">${ATTR_LABELS[k]}</div>
-      <div class="val" id="val_${k}">${val}</div>
-      <div style="font-size:12px;color:var(--muted)">${val===0 ? 'efeito: 0 (2d20 -> pior)' : 'dados: ' + val + 'd20 (pega maior)'}</div>
-      <div class="controls" style="margin-top:8px">
-        <button class="btn small" data-act="dec" data-key="${k}">-</button>
-        <button class="btn small" data-act="inc" data-key="${k}">+</button>
-      </div>
-    `;
-    attrsBox.appendChild(div);
+      <div class="val">${state.attrs[k]}</div>
+      <div class="controls">
+        <button class="btn small" onclick="changeAttr('${k}',-1)">-</button>
+        <button class="btn small" onclick="changeAttr('${k}',1)">+</button>
+      </div>`;
+    box.appendChild(div);
   });
-
-  // attach handlers
-  document.querySelectorAll('button[data-act]').forEach(b=>{
-    b.addEventListener('click', ()=> {
-      const act = b.dataset.act;
-      const key = b.dataset.key;
-      if(act === 'inc') incAttr(key);
-      else decAttr(key);
-    });
-  });
-
-  pointsLeftEl.textContent = calcPoints();
+  document.getElementById('pointsLeft').textContent=calcPoints();
+  calcStatus();
+  renderSummary();
+  // atualiza limite/carga do inventário sempre que atributos mudam
+  if(typeof atualizarCarga === 'function') atualizarCarga();
+}
+function changeAttr(k,delta){
+  const val=state.attrs[k];
+  if(delta>0 && calcPoints()<=0)return;
+  state.attrs[k]=Math.min(MAX_ATTR,Math.max(MIN_ATTR,val+delta));
+  renderAttrs();
 }
 
 function renderSkills(){
-  skillsBox.innerHTML = '';
+  const box=document.getElementById('skillsBox'); box.innerHTML='';
   SKILLS.forEach(s=>{
-    const chosen = state.skillLevel[s.id] || 0;
-    const originBonus = originSkillBonus(s.id);
-    const total = chosen + originBonus;
-    const div = document.createElement('div');
-    div.className = 'skill';
-    div.innerHTML = `
-      <div style="min-width:55%">
-        <b>${s.label}</b>
-        <div class="note" style="font-size:12px">${ATTR_LABELS[s.attr]}</div>
-      </div>
-      <div style="min-width:40%;text-align:right">
-        <select data-skill="${s.id}" class="skillSelect">
-          <option value="0"${chosen===0?' selected':''}>Nenhum (0)</option>
-          <option value="2"${chosen===2?' selected':''}>Treinado (+2)</option>
-          <option value="4"${chosen===4?' selected':''}>Especialista (+4)</option>
+    const chosen=state.skillLevel[s.id]; const originBonus=originSkillBonus(s.id); const total=chosen+originBonus;
+    const div=document.createElement('div');
+    div.className='skill';
+    div.innerHTML=`
+      <div><b>${s.label}</b><div class="note">${ATTR_LABELS[s.attr]}</div></div>
+      <div>
+        <select onchange="setSkill('${s.id}',this.value)">
+          <option value="0"${chosen==0?' selected':''}>0</option>
+          <option value="2"${chosen==2?' selected':''}>+2</option>
+          <option value="4"${chosen==4?' selected':''}>+4</option>
         </select>
-        <div style="font-size:12px;color:var(--muted);margin-top:6px">Origem: ${originBonus>0? '+'+originBonus : '—'} — Total: <strong>${total>=0? '+'+total : total}</strong></div>
-      </div>
-    `;
-    skillsBox.appendChild(div);
-  });
-
-  // listeners
-  document.querySelectorAll('.skillSelect').forEach(sel=>{
-    sel.addEventListener('change', ()=>{
-      const id = sel.dataset.skill;
-      state.skillLevel[id] = parseInt(sel.value,10) || 0;
-      saveLocal(false);
-      renderSummary();
-    });
+        <div class="note">Origem: ${originBonus>0? '+'+originBonus:'—'} | Total: ${total>=0? '+'+total:total}</div>
+      </div>`;
+    box.appendChild(div);
   });
 }
-
-function renderOriginEffects(){
-  const map = ORIGENS[state.origin] || {};
-  const keys = Object.keys(map);
-  if(keys.length===0){
-    originEffects.innerHTML = 'Nenhuma perícia recebe bônus por esta origem.';
-    return;
-  }
-  originEffects.innerHTML = keys.map(k => {
-    // find skill label
-    const lab = (SKILLS.find(s=>s.id===k)?.label) || k;
-    return `${lab}: +${map[k]}`;
-  }).join('<br>');
-}
+function setSkill(id,val){state.skillLevel[id]=parseInt(val)||0; renderSkills(); renderSummary();}
 
 function renderSummary(){
-  // build summary showing effective skill totals and attributes
-  let html = `<div style="display:flex;flex-direction:column;gap:6px">`;
-  html += `<div><b>Nome:</b> ${state.name || '—'}</div>`;
-  html += `<div><b>Origem:</b> ${state.origin}</div>`;
-  html += `<div style="margin-top:6px"><b>Atributos:</b>`;
-  ATTR_KEYS.forEach(k => html += `<div style="font-size:13px">${ATTR_LABELS[k]}: ${state.attrs[k]}</div>`);
-  html += `</div>`;
-  html += `<div style="margin-top:6px"><b>Perícias (total = escolha + origem):</b>`;
-  SKILLS.forEach(s => {
-    const chosen = state.skillLevel[s.id] || 0;
-    const ob = originSkillBonus(s.id);
-    const total = chosen + ob;
-    html += `<div style="font-size:13px">${s.label}: escolha ${chosen>0? '+'+chosen : 0 } ${ob? ` + origem ${'+'+ob}` : '' } → <strong>${ total>0? '+'+total : total }</strong></div>`;
-  });
-  html += `</div></div>`;
-  summaryDiv.innerHTML = html;
-}
+  let html=`<div><b>${state.name||'Sem nome'}</b>`;
+  html += `<div class="note">Origem: ${state.origin? (state.origin.charAt(0).toUpperCase()+state.origin.slice(1)) : 'Nenhuma'}</div></div>`;
+  ATTR_KEYS.forEach(k=>html+=`<div>${ATTR_LABELS[k]}: ${state.attrs[k]}</div>`);
 
-/* ========== ATTRIB MUTATIONS ========== */
-function incAttr(key){
-  const cur = state.attrs[key] || START_ATTR;
-  if(cur >= MAX_ATTR) return;
-  // check points
-  const left = calcPoints();
-  if(left <= 0) {
-    alert('Sem pontos restantes.');
-    return;
+  // Lista as perícias que estão treinadas (bônus de origem ou escolha manual)
+  const trained = SKILLS.filter(s => totalSkillBonus(s.id) > 0);
+  if(trained.length){
+    html += `<div style="margin-top:8px"><b>Perícias treinadas</b></div>`;
+    trained.forEach(s=>{
+      const chosen = state.skillLevel[s.id] || 0;
+      const originB = originSkillBonus(s.id) || 0;
+      const total = chosen + originB;
+      const notes = [];
+      if(chosen>0) notes.push('manual +' + chosen);
+      if(originB>0) notes.push('origem +' + originB);
+      html += `<div>${s.label}: ${total>=0? '+'+total:total} <span class="note">(${notes.join(' | ')})</span></div>`;
+    });
   }
-  state.attrs[key] = cur + 1;
-  saveLocal(false);
+
+  document.getElementById('summary').innerHTML=html;
+}
+
+// Função adicional: atualiza o resumo em um elemento alternativo `#resumo` se existir
+function atualizarResumo(){
+  const resumoDiv = document.getElementById('resumo') || document.getElementById('summary');
+  if(!resumoDiv) return;
+  // Usa state e chaves internas (atributos em lower-case)
+  const s = state || {};
+  const a = s.attrs || {};
+  const nome = s.name || 'Sem nome';
+  const origemLabel = s.origin? (s.origin.charAt(0).toUpperCase()+s.origin.slice(1)) : 'Nenhuma';
+  resumoDiv.innerHTML = `
+    <strong>${escapeHtml(nome)}</strong>
+    <div class="note">Origem: ${escapeHtml(origemLabel)}</div>
+    <div>Força: ${a.forca}</div>
+    <div>Agilidade: ${a.agilidade}</div>
+    <div>Vigor: ${a.vigor}</div>
+    <div>Intelecto: ${a.intelecto}</div>
+    <div>Presença: ${a.presenca}</div>
+  `;
+}
+
+// liga atualizações em tempo real ao campo nome e origem (já existe listener para nome, reaproveitamos)
+const nomeEl = document.getElementById('nome');
+if(nomeEl){ nomeEl.addEventListener('input', (e)=>{ state.name = e.target.value; renderSummary(); atualizarResumo(); }); }
+const origemEl = document.getElementById('origem');
+if(origemEl){ origemEl.addEventListener('change', ()=>{ state.origin = origemEl.value; renderSkills(); calcStatus(); renderSummary(); atualizarResumo(); }); }
+
+// liga atualizações também aos atributos (atributos são as chaves em ATTR_KEYS)
+ATTR_KEYS.forEach(k=>{
+  // Os controles de atributo no UI são renderizados dinamicamente; usamos delegação simples via renderAttrs que chama atualizarCarga
+  // Se existir um input com id `attr-<Label>` podemos ligar, mas a UI atual não cria inputs com esses ids; então chamamos atualizarResumo() em renderAttrs()
+});
+
+// garante que o resumo inicial apareça
+document.addEventListener('DOMContentLoaded', ()=>{ atualizarResumo(); });
+
+function renderOriginOptions(){
+  const sel=document.getElementById('origem'); sel.innerHTML='';
+  for(const k in ORIGENS){const opt=document.createElement('option'); opt.value=k; opt.textContent=k.charAt(0).toUpperCase()+k.slice(1); sel.appendChild(opt);}
+  sel.value=state.origin;
+  sel.onchange=()=>{state.origin=sel.value; renderSkills(); calcStatus(); renderSummary();}
+}
+
+// === Botões de Vida e Sanidade ===
+document.getElementById('vidaMais').onclick=()=>{state.vidaAtual++;calcStatus();}
+document.getElementById('vidaMenos').onclick=()=>{state.vidaAtual--;calcStatus();}
+document.getElementById('sanMais').onclick=()=>{state.sanAtual++;calcStatus();}
+document.getElementById('sanMenos').onclick=()=>{state.sanAtual--;calcStatus();}
+
+// === Inicialização ===
+function init(){
+  state.vidaAtual=10+state.attrs.vigor*4;
+  state.sanAtual=10+state.attrs.presenca*3;
+  // se o campo de nome já estiver preenchido no DOM (ex: carregado por outra parte), inicializa state.name
+  const nomeInput = document.getElementById('nome');
+  if(nomeInput && nomeInput.value) state.name = nomeInput.value;
+  renderOriginOptions();
   renderAttrs();
+  renderSkills();
   renderSummary();
+  // garante que inventario exista e sincroniza UI de armas
+  state.inventario = state.inventario || {armas:[],geral: ''};
+  renderListaArmas();
+  atualizarCarga();
 }
+init();
+// Atualiza state.name enquanto o usuário digita no campo "nome"
+document.getElementById('nome').addEventListener('input', (e)=>{ state.name = e.target.value; renderSummary(); });
+</script>
+<!-- html2pdf CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+<script>
+  // Exportar conteúdo da ficha como PDF (constrói um HTML simples contendo só resumo + inventário)
+  const exportBtnEl = document.getElementById('exportBtn');
+  if(exportBtnEl) exportBtnEl.addEventListener('click', ()=>{
+    if(typeof html2pdf === 'undefined'){
+      alert('Não foi possível carregar a biblioteca de exportação (html2pdf). Verifique sua conexão de internet e recarregue a página.');
+      return;
+    }
 
-function decAttr(key){
-  const cur = state.attrs[key] || START_ATTR;
-  if(cur <= MIN_ATTR) return;
-  // decreasing below START_ATTR frees point
-  state.attrs[key] = cur - 1;
-  saveLocal(false);
-  renderAttrs();
-  renderSummary();
-}
+    const name = (document.getElementById('nome').value || 'Sem nome');
+    const originLabel = state.origin ? (state.origin.charAt(0).toUpperCase()+state.origin.slice(1)) : 'Nenhuma';
+    const vidaMax = 10 + (state.attrs?.vigor||0)*4;
+    const sanMax = 8 + (state.attrs?.presenca||0)*2;
 
-/* ========== SAVE / LOAD (local) & IMPORT/EXPORT JSON ========== */
-const STORAGE_KEY = 'sistemaZ_ficha_v2';
+    const summaryHtml = document.getElementById('summary')?.innerHTML || '';
+    const weaponsText = document.getElementById('inventoryWeapons')?.value || '';
+    const generalText = document.getElementById('inventoryGeneral')?.value || '';
 
-function saveLocal(announce=true){
-  const payload = {
-    name: state.name,
-    origin: state.origin,
-    attrs: state.attrs,
-    skillLevel: state.skillLevel,
-    equip: document.getElementById('equip').value,
-    notes: document.getElementById('notes').value
-  };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-  if(announce) alert('Ficha salva localmente.');
-}
+    // Cria container limpo
+    const temp = document.createElement('div');
+    temp.style.width = '792px';
+    temp.style.boxSizing = 'border-box';
+    temp.style.fontFamily = 'Arial, Helvetica, sans-serif';
+    temp.style.color = '#000';
+    temp.style.background = '#fff';
+    temp.style.padding = '20px';
 
-function loadLocal(){
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if(!raw){ alert('Nenhuma ficha local encontrada.'); return; }
-  try {
-    const d = JSON.parse(raw);
-    state.name = d.name || '';
-    state.origin = d.origin || 'nenhuma';
-    state.attrs = Object.assign({}, state.attrs, d.attrs || {});
-    state.skillLevel = Object.assign({}, state.skillLevel, d.skillLevel || {});
-    document.getElementById('nome').value = state.name;
-    document.getElementById('equip').value = d.equip || '';
-    document.getElementById('notes').value = d.notes || '';
-    origemSelect.value = state.origin;
-    renderSkills();
-    renderAttrs();
-    renderSummary();
-    renderOriginEffects();
-    alert('Ficha carregada.');
-  } catch(e){ alert('Erro ao carregar ficha local.'); }
-}
+    // Cabeçalho com nome e origem
+    const h = document.createElement('div');
+    const h1 = document.createElement('h1'); h1.textContent = name; h1.style.margin='0 0 6px 0'; h1.style.color='#111';
+    const orig = document.createElement('div'); orig.textContent = 'Origem: ' + originLabel; orig.style.marginBottom='8px'; orig.className='note';
+    h.appendChild(h1); h.appendChild(orig);
+    temp.appendChild(h);
 
-function exportJSON(){
-  const payload = {
-    name: state.name,
-    origin: state.origin,
-    attrs: state.attrs,
-    skillLevel: state.skillLevel,
-    equip: document.getElementById('equip').value,
-    notes: document.getElementById('notes').value,
-    exportedAt: new Date().toISOString()
-  };
-  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = (state.name || 'ficha') + '.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-}
+    // Status
+    const status = document.createElement('div'); status.style.marginBottom='10px';
+    status.innerHTML = `<strong>Status</strong><div>Vida: ${state.vidaAtual} / ${vidaMax}</div><div>Sanidade: ${state.sanAtual} / ${sanMax}</div>`;
+    temp.appendChild(status);
 
-function importJSONFile(file){
-  const reader = new FileReader();
-  reader.onload = ()=> {
+    // Resumo (usa o HTML gerado pelo app)
+    const sumWrap = document.createElement('div'); sumWrap.innerHTML = summaryHtml; temp.appendChild(sumWrap);
+
+    // Quebra de página e Inventário
+    const pageBreak = document.createElement('div'); pageBreak.style.pageBreakBefore='always'; pageBreak.style.breakBefore='always';
+    temp.appendChild(pageBreak);
+
+    const invWrap = document.createElement('div'); invWrap.style.padding='20px';
+    const invTitle = document.createElement('h2'); invTitle.textContent = 'Inventário'; invTitle.style.marginTop='0'; invWrap.appendChild(invTitle);
+    const grid = document.createElement('div'); grid.style.display='flex'; grid.style.gap='12px';
+    const col1 = document.createElement('div'); col1.style.flex='1'; const col2 = document.createElement('div'); col2.style.flex='1';
+    const wTitle = document.createElement('h3'); wTitle.textContent='Armas'; wTitle.style.marginTop='0';
+    const gTitle = document.createElement('h3'); gTitle.textContent='Geral'; gTitle.style.marginTop='0';
+    const wPre = document.createElement('pre'); wPre.textContent = weaponsText; wPre.style.whiteSpace='pre-wrap'; wPre.style.wordWrap='break-word';
+    const gPre = document.createElement('pre'); gPre.textContent = generalText; gPre.style.whiteSpace='pre-wrap'; gPre.style.wordWrap='break-word';
+    col1.appendChild(wTitle); col1.appendChild(wPre); col2.appendChild(gTitle); col2.appendChild(gPre); grid.appendChild(col1); grid.appendChild(col2); invWrap.appendChild(grid);
+    temp.appendChild(invWrap);
+
+    // Anexa e gera PDF
+    temp.style.position='fixed'; temp.style.left='10px'; temp.style.top='10px'; temp.style.zIndex=99999; document.body.appendChild(temp);
+
+    const opt = {
+      margin:       0.5,
+      filename:     (document.getElementById('nome').value || 'ficha') + '.pdf',
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true },
+      jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(temp).save().then(()=>{ temp.remove(); }).catch((err)=>{
+      // limpeza simples: remove container temporário e avisa o usuário
+      try{ temp.remove(); }catch(e){}
+      console.error('Erro ao gerar PDF com html2pdf:', err);
+      alert('Erro ao gerar PDF: '+(err?.message||err));
+    });
+  });
+  // Botão de fallback: abre nova janela com conteúdo limpo e chama print() (implementação segura)
+  const printBtnEl = document.getElementById('printBtn');
+  if(printBtnEl) printBtnEl.addEventListener('click', ()=>{
+    const name = (document.getElementById('nome').value || 'Sem nome');
+    const originLabel = state.origin ? (state.origin.charAt(0).toUpperCase()+state.origin.slice(1)) : 'Nenhuma';
+    const vidaMax = 10 + (state.attrs?.vigor||0)*4;
+    const sanMax = 8 + (state.attrs?.presenca||0)*2;
+    const summaryHtml = (document.getElementById('summary')?.innerHTML || '').replace(/<\/(script)/ig, '<\\/script');
+    const weaponsText = (document.getElementById('inventoryWeapons')?.value || '');
+    const generalText = (document.getElementById('inventoryGeneral')?.value || '');
     try{
-      const d = JSON.parse(reader.result);
-      // basic validation
-      if(!d.attrs || !d.skillLevel){ alert('JSON inválido (faltam campos).'); return; }
-      state.name = d.name || '';
-      state.origin = d.origin || 'nenhuma';
-      state.attrs = Object.assign({}, state.attrs, d.attrs || {});
-      state.skillLevel = Object.assign({}, state.skillLevel, d.skillLevel || {});
-      document.getElementById('nome').value = state.name;
-      document.getElementById('equip').value = d.equip || '';
-      document.getElementById('notes').value = d.notes || '';
-      origemSelect.value = state.origin;
-      renderSkills();
-      renderAttrs();
-      renderSummary();
-      renderOriginEffects();
-      alert('Importação concluída.');
-    }catch(e){
-      alert('Erro ao ler JSON: ' + e.message);
+      const win = window.open('', '_blank');
+      const css = '<style>body{font-family:Arial,Helvetica,sans-serif;color:#111;padding:20px} h1{margin:0 0 6px 0} h2{margin-top:0} pre{white-space:pre-wrap;word-wrap:break-word}</style>';
+      let html = '<!doctype html><html><head><meta charset="utf-8">'+css+'</head><body>';
+      html += '<h1>'+escapeHtml(name)+'</h1>';
+      html += '<div>Origem: '+escapeHtml(originLabel)+'</div>';
+      html += '<div style="margin-top:8px"><strong>Status</strong><div>Vida: '+state.vidaAtual+' / '+vidaMax+'</div><div>Sanidade: '+state.sanAtual+' / '+sanMax+'</div></div>';
+      html += '<div style="margin-top:12px">'+summaryHtml+'</div><hr><h2>Inventário</h2><div style="display:flex;gap:12px"><div style="flex:1"><h3>Armas</h3><pre>'+escapeHtml(weaponsText)+'</pre></div><div style="flex:1"><h3>Geral</h3><pre>'+escapeHtml(generalText)+'</pre></div></div>';
+      html += '</body></html>';
+      win.document.open(); win.document.write(html); win.document.close(); win.focus(); setTimeout(()=>{ try{ win.print(); }catch(e){console.error(e);} },500);
+    }catch(e){ console.error(e); alert('Falha ao abrir janela de impressão: '+(e.message||e)); }
+  });
+
+  // utilitário simples para escapar texto antes de inserir em HTML
+  function escapeHtml(str){ return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+</script>
+<script>
+// Remove nós de texto ou elementos que contenham trechos de código deixados acidentalmente
+function removeStrayCodeFragments(){
+  const body = document.body;
+  if(!body) return;
+  const patterns = [/doc\.close\(/i,/Erro ao gerar PDF/i,/Falha ao chamar print/i,/html2pdf/i,/temp\.remove\(\)/i];
+  const toRemove = [];
+  // inspeciona nós filhos do body e marca para remoção quando o texto combinar
+  body.childNodes.forEach(node=>{
+    try{
+      const text = (node.textContent||'').trim();
+      if(!text) return;
+      for(const p of patterns){ if(p.test(text)){ toRemove.push(node); break; } }
+    }catch(e){/* ignore */}
+  });
+  toRemove.forEach(n=>n.remove());
+}
+document.addEventListener('DOMContentLoaded', ()=>{ removeStrayCodeFragments(); });
+</script>
+<script>
+// Limpeza específica: remove nós que contenham o trecho problemático exato
+document.addEventListener('DOMContentLoaded', ()=>{
+  const needle = "win.document.open(); win.document.write(html); win.document.close(); win.focus(); setTimeout(()=>{ try{ win.print(); }catch(e){console.error(e);} },500);";
+  document.body.childNodes.forEach(n=>{
+    try{ if(n.textContent && n.textContent.indexOf(needle)!==-1) n.remove(); }catch(e){}
+  });
+});
+// Função utilitária: converte o objeto ficha para JSON e inicia download
+function downloadJson(obj, filename){
+  try{
+    const blob = new Blob([JSON.stringify(obj, null, 2)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = filename || 'ficha.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  }catch(e){ console.error('Erro ao gerar download JSON', e); alert('Erro ao gerar arquivo JSON: '+(e.message||e)); }
+}
+
+document.getElementById("saveBtn").addEventListener("click", async () => {
+  const cargaTotal = (state.inventario.armas || []).reduce((t,a)=>t+(a.peso||0),0);
+  const limiteCarga = 2 + (state?.attrs?.forca || 0);
+
+  const ficha = {
+    nome: state.name || "Sem nome",
+    origem: state.origin,
+    atributos: state.attrs,
+    pericias: state.skillLevel,
+    vidaAtual: state.vidaAtual,
+    sanAtual: state.sanAtual,
+    inventario: {
+      // salva lista estruturada de armas
+      armas: (state.inventario.armas || []).map(a=>{
+        const item = { nome: a.nome, peso: a.peso };
+        if(a.dano && a.dano !== '-') item.dano = a.dano;
+        return item;
+      }),
+      carga_total: cargaTotal,
+      limite_carga: limiteCarga,
+      // mantém também o texto livre para compatibilidade
+      geral: state.inventario?.geral || document.getElementById('inventoryGeneral')?.value || "",
+      armas_texto: document.getElementById('inventoryWeapons')?.value || ""
     }
   };
-  reader.readAsText(file);
+
+  // Baixa localmente o arquivo JSON (sempre)
+  downloadJson(ficha, (document.getElementById('nome').value || 'ficha') + '.json');
+
+  // Também tenta enviar ao servidor (se houver endpoint)
+  try {
+    const res = await fetch("/api/salvar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(ficha)
+    });
+    // se o servidor responder com JSON, mostra feedback
+    try{
+      const data = await res.json();
+      if (data.ok) console.log('Ficha enviada ao servidor com sucesso');
+      else console.warn('Servidor retornou erro ao salvar ficha', data);
+    }catch(e){ console.warn('Resposta do servidor não está em JSON ou sem corpo'); }
+  } catch (err) {
+    console.info('Não foi possível enviar ao servidor (opcional):', err.message || err);
+  }
+});
+
+// Handler: botão e input para carregar arquivo JSON
+document.getElementById('loadBtn').addEventListener('click', ()=> document.getElementById('loadInput').click());
+document.getElementById('loadInput').addEventListener('change', (e)=>{
+  const f = e.target.files && e.target.files[0];
+  if(!f) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const obj = JSON.parse(reader.result);
+      applyFichaObject(obj);
+      alert('✅ Ficha carregada com sucesso!');
+    }catch(err){ console.error(err); alert('Arquivo inválido: ' + (err.message||err)); }
+    // limpa para permitir re-upload do mesmo arquivo
+    e.target.value='';
+  };
+  reader.onerror = ()=>{ alert('Erro ao ler arquivo'); e.target.value=''; };
+  reader.readAsText(f, 'utf-8');
+});
+
+function applyFichaObject(obj){
+  // Faz validações e aplica ao state e aos campos da UI
+  if(!obj) return;
+  if(typeof obj.nome === 'string'){
+    state.name = obj.nome; document.getElementById('nome').value = obj.nome;
+  }
+  if(typeof obj.origem === 'string' && ORIGENS.hasOwnProperty(obj.origem)){
+    state.origin = obj.origem; document.getElementById('origem').value = obj.origem;
+  }
+  if(obj.atributos && typeof obj.atributos === 'object'){
+    ATTR_KEYS.forEach(k=>{ if(typeof obj.atributos[k] === 'number') state.attrs[k]=Math.max(MIN_ATTR, Math.min(MAX_ATTR, obj.atributos[k])); });
+  }
+  if(obj.pericias && typeof obj.pericias === 'object'){
+    SKILLS.forEach(s=>{ if(typeof obj.pericias[s.id] === 'number') state.skillLevel[s.id]=obj.pericias[s.id]; });
+  }
+  if(typeof obj.vidaAtual === 'number') state.vidaAtual = obj.vidaAtual;
+  if(typeof obj.sanAtual === 'number') state.sanAtual = obj.sanAtual;
+  if(obj.inventario && typeof obj.inventario === 'object'){
+    // Inventário pode vir no formato estruturado (array de armas) ou texto
+    if(Array.isArray(obj.inventario.armas)){
+      state.inventario.armas = obj.inventario.armas.map(a=>({ nome: a.nome, peso: a.peso||1, dano: a.dano }));
+      // atualiza textarea texto e lista
+      document.getElementById('inventoryWeapons').value = (state.inventario.armas||[]).map(a=>a.nome + (a.peso?` (Peso ${a.peso})`: '')).join('\n');
+      renderListaArmas();
+      atualizarCarga();
+    }else if(typeof obj.inventario.armas === 'string'){
+      document.getElementById('inventoryWeapons').value = obj.inventario.armas;
+      // tenta reconstruir a lista a partir do texto
+      syncArmasFromTextarea();
+    }
+    if(typeof obj.inventario.geral === 'string') document.getElementById('inventoryGeneral').value = obj.inventario.geral;
+  }
+  // Re-renderiza UI dependente do state
+  renderOriginOptions();
+  renderAttrs();
+  renderSkills();
+  renderSummary();
+  calcStatus();
 }
 
-/* ========== INIT ========== */
-document.getElementById('nome').addEventListener('input', e=>{ state.name = e.target.value; saveLocal(false); renderSummary(); });
-document.getElementById('equip').addEventListener('input', ()=> saveLocal(false));
-document.getElementById('notes').addEventListener('input', ()=> saveLocal(false));
+</script>
+<script>
+// === Inventário de Armas com limite de carga ===
+const armasDisponiveis = [
+  { nome: "Pistola", dano: "1d6", peso: 1 },
+  { nome: "Espingarda", dano: "2d6", peso: 2 },
+  { nome: "Faca", dano: "1d4", peso: 0 },
+  { nome: "Machado", dano: "1d8", peso: 2 },
+  { nome: "Revólver", dano: "1d6", peso: 1 },
+  { nome: "Metralhadora", dano: "2d6", peso: 3 },
+  { nome: "Arco e Flecha", dano: "1d6", peso: 2 },
+  { nome: "Besta", dano: "1d8", peso: 3 },
+  { nome: "Rifle de Precisão", dano: "2d8", peso: 3 },
+  { nome: "Mochila", dano: "-", peso: -2 },
+  { nome: "Kit Médico", dano: "-", peso: 1 },
+  { nome: "Corda (10m)", dano: "-", peso: 2 },
+  { nome: "Lanterna", dano: "-", peso: 1 },
+  { nome: "Canivete", dano: "1d4", peso: 0 },
+  { nome: "Granada", dano: "3d6", peso: 2 },
+  { nome: "Coquetel Molotov", dano: "2d6", peso: 1 },
+  { nome: "Spray de Pimenta", dano: "1d4", peso: 0 },
+  { nome: "Escudo Improvisado", dano: "-", peso: 2 },
+  { nome: "Balas (Pacote)", dano: "-", peso: 1 }
+];
 
-document.getElementById('saveLocal').addEventListener('click', ()=>{ state.name = document.getElementById('nome').value; saveLocal(true); });
-document.getElementById('loadLocal').addEventListener('click', loadLocal);
+const selectArmaEl = document.getElementById('selectArma');
+const addArmaBtn = document.getElementById('addArmaBtn');
+const listaArmasEl = document.getElementById('listaArmas');
+const cargaInfoEl = document.getElementById('cargaInfo');
+const inventoryWeaponsTA = document.getElementById('inventoryWeapons');
 
-document.getElementById('exportBtn').addEventListener('click', exportJSON);
-document.getElementById('importBtn').addEventListener('click', ()=> document.getElementById('fileInput').click());
-document.getElementById('fileInput').addEventListener('change', (e)=> {
-  const f = e.target.files[0]; if(f) importJSONFile(f);
+// armas agora são armazenadas em state.inventario.armas (array de objetos {nome,peso,dano})
+// let armasSelecionadas = [];
+
+function initArmasControls(){
+  // preenche select
+  selectArmaEl.innerHTML = '';
+  armasDisponiveis.forEach(a => {
+    const opt = document.createElement('option'); opt.value = a.nome;
+    const danoParte = (a.dano && a.dano !== '-') ? `Dano ${a.dano}, ` : '';
+    opt.textContent = `${a.nome} (${danoParte}Peso ${a.peso})`;
+    selectArmaEl.appendChild(opt);
+  });
+
+  addArmaBtn.onclick = () => {
+    const armaNome = selectArmaEl.value;
+    const arma = armasDisponiveis.find(a => a.nome === armaNome);
+    if(!arma) return;
+    state.inventario.armas.push(arma);
+    renderListaArmas();
+    atualizarCarga();
+    syncArmasToTextarea();
+  };
+}
+
+function renderListaArmas(){
+  listaArmasEl.innerHTML = '';
+  (state.inventario.armas||[]).forEach((arma, idx) => {
+    const li = document.createElement('li');
+    li.style.padding = '6px 0';
+  const danoParteLi = (arma.dano && arma.dano !== '-') ? `Dano ${arma.dano}, ` : '';
+  li.textContent = `${arma.nome} (${danoParteLi}Peso ${arma.peso})`;
+    const btn = document.createElement('button'); btn.textContent = '❌'; btn.style.marginLeft='10px'; btn.className='btn small';
+  btn.onclick = () => { state.inventario.armas.splice(idx,1); renderListaArmas(); atualizarCarga(); syncArmasToTextarea(); };
+    li.appendChild(btn);
+    listaArmasEl.appendChild(li);
+  });
+}
+
+function atualizarCarga(){
+  const forca = state?.attrs?.forca || 0;
+  const limite = 2 + forca;
+  const carga = (state.inventario.armas||[]).reduce((t,a)=>t+(a.peso||0),0);
+  cargaInfoEl.textContent = `Carga Total: ${carga}/${limite}`;
+  cargaInfoEl.style.color = carga > limite ? "#ff5555" : "#a0ffa0";
+}
+
+function syncArmasToTextarea(){
+  // escreve as armas selecionadas no textarea de armas (uma por linha)
+  inventoryWeaponsTA.value = (state.inventario.armas||[]).map(a=>{
+    const danoTxt = (a.dano && a.dano !== '-') ? ` (Dano ${a.dano})` : '';
+    const pesoTxt = (typeof a.peso !== 'undefined') ? ` (Peso ${a.peso})` : '';
+    // prefer mostrar dano e peso adequadamente
+    return a.nome + (danoTxt ? danoTxt : pesoTxt);
+  }).join('\n');
+}
+
+function syncArmasFromTextarea(){
+  // tenta reconstruir armasSelecionadas a partir do textarea (útil ao carregar JSON)
+  const lines = (inventoryWeaponsTA.value||'').split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+  const found = [];
+  lines.forEach(line=>{
+    // procura por nome de arma no início da linha
+    for(const a of armasDisponiveis){ if(line.indexOf(a.nome)===0){ found.push(a); break; } }
+  });
+  state.inventario.armas = found;
+  renderListaArmas();
+  atualizarCarga();
+}
+
+// Inicialização após DOM
+document.addEventListener('DOMContentLoaded', ()=>{
+  initArmasControls();
+  // se o textarea já tem conteúdo (ex: carregado por JSON), sincroniza
+  syncArmasFromTextarea();
+  const invGen = document.getElementById('inventoryGeneral');
+  if(invGen){ invGen.addEventListener('input', (e)=>{ state.inventario.geral = e.target.value; }); }
 });
 
-origemSelect.addEventListener('change', ()=> {
-  state.origin = origemSelect.value;
-  saveLocal(false);
-  renderSkills();
-  renderSummary();
-  renderOriginEffects();
-});
-
-/* load from storage on start (if any) */
-(function boot(){
-  // defaults
-  resetStateDefaults();
-  // try load
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if(raw){
-    try{
-      const d = JSON.parse(raw);
-      state.name = d.name || '';
-      state.origin = d.origin || 'nenhuma';
-      state.attrs = Object.assign({}, state.attrs, d.attrs || {});
-      state.skillLevel = Object.assign({}, state.skillLevel, d.skillLevel || {});
-      document.getElementById('nome').value = state.name;
-      document.getElementById('equip').value = d.equip || '';
-      document.getElementById('notes').value = d.notes || '';
-    }catch(e){}
-  }
-
-  renderOriginOptions();
-  renderSkills();
-  renderAttrs();
-  renderSummary();
-  renderOriginEffects();
-})();
+// expõe a função para ser chamada em renderAttrs
+window.atualizarCarga = atualizarCarga;
+// expõe para applyFichaObject chamar
+window.syncArmasFromTextarea = syncArmasFromTextarea;
 </script>
 </body>
 </html>
