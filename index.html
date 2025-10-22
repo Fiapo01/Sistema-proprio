@@ -4,6 +4,9 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Ficha — Sistema Z</title>
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
 <style>
   :root{
     --bg:#07070a;
@@ -199,7 +202,8 @@ const SKILLS=[
   {id:'percepcao',label:'Percepção',attr:'presenca'},
   {id:'crime',label:'Crime',attr:'intelecto'},
   {id:'religiao',label:'Religião',attr:'presenca'},
-  {id:'adetramento',label:'Adestramento',attr:'presenca'}
+  {id:'adetramento',label:'Adestramento',attr:'presenca'},
+  {id:'intuicao',label:'Intuição',attr:'presenca'}
 ];
 
 const ORIGENS={
@@ -217,7 +221,7 @@ const ORIGENS={
   'religioso':{'religiao':4,'diplomacia':2},
   'investigador':{'investigacao':4,'intimidacao':2},
   'amigo dos animais':{'adestramento':4,'diplomacia':2},
-  'ator':{'enganacao':4,'':2}
+  'ator':{'enganacao':4,'ituicao':2}
 };
 
 let state={name:'',origin:'nenhuma',attrs:{},skillLevel:{},vidaAtual:0,sanAtual:0,inventario:{armas:[],geral:""}};
