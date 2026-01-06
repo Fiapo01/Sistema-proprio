@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Ficha — Contagio Zero</title>
+<title>Contagio Zero</title>
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -108,7 +108,7 @@
       <div style="display:flex;gap:12px;align-items:center;justify-content:space-between">
         <div style="flex:1">
           <label>Nome do Personagem</label>
-          <input id="nome" type="text" placeholder="Ex: Ana Silva">
+          <input id="nome" type="text" placeholder="Ex: Rick Grimes">
         </div>
         <div style="width:260px">
           <label>Origem</label>
@@ -127,7 +127,7 @@
         <div class="card">
           <label>Atributos</label>
           <div class="attrs" id="attrsBox"></div>
-          <div class="note" style="margin-top:10px">Pontos restantes: <strong id="pointsLeft">5</strong></div>
+          <div class="note" style="margin-top:10px">Pontos restantes: <strong id="pointsLeft">6</strong></div>
         </div>
 
         <div class="card" style="margin-top:12px">
@@ -239,8 +239,8 @@ function totalSkillBonus(id){return (state.skillLevel[id]||0)+originSkillBonus(i
 
 function calcStatus(){
   const vidaMax=10+state.attrs.vigor*4;
-  const sanMax=8+state.attrs.presenca*2;
-  const def=10+state.attrs.forca*3;
+  const sanMax=8+state.attrs.presenca*3;
+  const def=10+state.attrs.forca*2;
   if(state.vidaAtual>vidaMax)state.vidaAtual=vidaMax;
   if(state.sanAtual>sanMax)state.sanAtual=sanMax;
   document.getElementById('vidaMax').textContent=vidaMax;
@@ -407,7 +407,7 @@ document.getElementById('nome').addEventListener('input', (e)=>{ state.name = e.
     const name = (document.getElementById('nome').value || 'Sem nome');
     const originLabel = state.origin ? (state.origin.charAt(0).toUpperCase()+state.origin.slice(1)) : 'Nenhuma';
     const vidaMax = 10 + (state.attrs?.vigor||0)*4;
-    const sanMax = 8 + (state.attrs?.presenca||0)*2;
+    const sanMax = 8 + (state.attrs?.presenca||0)*3;
 
     const summaryHtml = document.getElementById('summary')?.innerHTML || '';
     const weaponsText = document.getElementById('inventoryWeapons')?.value || '';
