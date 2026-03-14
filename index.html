@@ -12,7 +12,7 @@
     --bg:#07070a;
     --panel:#0f1720;
     --muted:#93a1b1;
-    --accent:#ef4444;
+    --accent:#910000;
     --glass:rgba(255,255,255,0.03);
   }
   *{box-sizing:border-box}
@@ -68,6 +68,110 @@
   option:hover {
     background-color: #1f2937;
   }
+
+  /* BARRAS DE STATUS */
+  .barra{
+    width:100%;
+    height:14px;
+    background:#1f2937;
+    border-radius:6px;
+    overflow:hidden;
+    margin-top:6px;
+  }
+
+  .vida-barra{
+    height:100%;
+    background:#22c55e;
+    width:100%;
+    transition:0.3s;
+  }
+
+  .san-barra{
+    height:100%;
+    background:#3b82f6;
+    width:100%;
+    transition:0.3s;
+  }
+
+  /* cores da vida */
+  .vida-amarela{
+    background:#facc15 !important;
+  }
+
+  .vida-vermelha{
+    background:#ef4444 !important;
+  }
+
+  /* efeito de tremor */
+  @keyframes tremor{
+    0%{transform:translate(0)}
+    25%{transform:translate(-2px,2px)}
+    50%{transform:translate(2px,-2px)}
+    75%{transform:translate(-2px,-2px)}
+    100%{transform:translate(0)}
+  }
+
+  .tremendo{
+    animation:tremor 0.15s infinite;
+  }
+
+  /* Efeito de tela sangrando */
+  .blood-overlay{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    pointer-events:none;
+    opacity:0;
+    transition:opacity 0.4s;
+    background:
+    radial-gradient(circle at top left, rgba(120,0,0,0.6), transparent 40%),
+    radial-gradient(circle at top right, rgba(120,0,0,0.6), transparent 40%),
+    radial-gradient(circle at bottom left, rgba(120,0,0,0.6), transparent 40%),
+    radial-gradient(circle at bottom right, rgba(120,0,0,0.6), transparent 40%);
+  }
+
+  .blood-active{
+    opacity:1;
+  }
+
+  /* EFEITO DE ADRENALINA */
+
+  @keyframes tremorAdrenalina{
+    0%{transform:translate(0)}
+    25%{transform:translate(-1px,1px)}
+    50%{transform:translate(1px,-1px)}
+    75%{transform:translate(-1px,-1px)}
+    100%{transform:translate(0)}
+  }
+
+  .adrenalina{
+    animation:tremorAdrenalina 0.18s infinite;
+    filter:contrast(1.2) saturate(1.4);
+  }
+
+  /* camada vermelha */
+
+  .adrenalina::after{
+    content:"";
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    pointer-events:none;
+
+    background:radial-gradient(circle, transparent 40%, rgba(150,0,0,0.35));
+
+    animation:pulseAdrenalina 2s infinite;
+  }
+
+  @keyframes pulseAdrenalina{
+    0%{opacity:0.3}
+    50%{opacity:0.6}
+    100%{opacity:0.3}
+  }
 </style>
 </head>
 <body>
@@ -83,6 +187,11 @@
         <div class="attr">
           <div class="name">Vida</div>
           <div class="val"><span id="vidaAtual">--</span> / <span id="vidaMax">--</span></div>
+
+          <div class="barra">
+            <div id="vidaBarra" class="vida-barra"></div>
+          </div>
+
           <div class="controls">
             <button class="btn small" id="vidaMenos">-</button>
             <button class="btn small" id="vidaMais">+</button>
@@ -91,9 +200,27 @@
         <div class="attr">
           <div class="name">Sanidade</div>
           <div class="val"><span id="sanAtual">--</span> / <span id="sanMax">--</span></div>
+
+          <div class="barra">
+            <div id="sanBarra" class="san-barra"></div>
+          </div>
+
           <div class="controls">
             <button class="btn small" id="sanMenos">-</button>
             <button class="btn small" id="sanMais">+</button>
+          </div>
+        </div>
+        <div class="attr">
+          <div class="name">Esforço</div>
+          <div class="val"><span id="peAtual">--</span> / <span id="peMax">--</span></div>
+
+          <div class="barra">
+            <div id="peBarra" style="height:100%;background:#facc15;width:100%;transition:0.3s;"></div>
+          </div>
+
+          <div class="controls">
+            <button class="btn small" id="peMenos">-</button>
+            <button class="btn small" id="peMais">+</button>
           </div>
         </div>
         <div class="attr">
@@ -107,11 +234,11 @@
     <div class="card" style="margin-top:14px;">
       <div style="display:flex;gap:12px;align-items:center;justify-content:space-between">
         <div style="flex:1">
-          <label>Nome do Personagem</label>
+          <label for="nome">Nome do Personagem</label>
           <input id="nome" type="text" placeholder="Ex: Rick Grimes">
         </div>
         <div style="width:260px">
-          <label>Origem</label>
+          <label for="origem">Origem</label>
           <select id="origem"></select>
         </div>
         <div style="display:flex;gap:8px;align-items:center">
@@ -135,13 +262,32 @@
           <div class="skills" id="skillsBox"></div>
         </div>
 
-        <!-- Equipamento removido (migrado para a página de Inventário no PDF) -->
+        <div class="card" style="margin-top:12px">
+          <label>Habilidades do Personagem</label>
+          <div id="personagemHabilidadesBox" style="margin-top:8px"></div>
+        </div>
+
+
       </div>
 
       <div>
         <div class="card">
-          <label>Resumo</label>
-          <div id="summary" class="resultado"></div>
+          <label>Habilidades</label>
+          <div style="margin-bottom:12px">
+            <div class="note">Escolha 3 habilidades para o seu personagem</div>
+          </div>
+          
+          <div style="margin-top:12px">
+            <label for="selectHabilidadeDisponivel" style="margin-bottom:8px">Selecionar Habilidade para o Personagem</label>
+            <div style="display:flex;gap:8px;align-items:center">
+              <select id="selectHabilidadeDisponivel" style="flex:1;padding:6px;border-radius:6px;background:transparent;color:inherit">
+                <option value="">— Selecione uma habilidade —</option>
+              </select>
+              <button class="btn small" onclick="adicionarHabilidadeSelecionada()">✓ Adicionar</button>
+            </div>
+          </div>
+
+          <div id="listaHabilidadesDisp" style="margin-top:12px;border-top:1px solid rgba(255,255,255,0.1);padding-top:8px"></div>
         </div>
     
         </div>
@@ -155,10 +301,11 @@
         <h2 style="margin-top:0;color:var(--accent)">Inventário</h2>
         <div class="inventory-grid">
           <div>
-            <label>Armas</label>
+            <label for="inventoryWeapons"Armas/label>
             <!-- Controles de seleção de armas e indicador de carga serão inseridos aqui -->
             <div id="weaponsControls" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px">
               <div style="display:flex;gap:8px;align-items:center">
+                <label for="selectArma" style="margin-right:8px">Selecionar Itens:</label>
                 <select id="selectArma" style="flex:1;padding:6px;border-radius:6px;background:transparent;color:inherit"></select>
                 <button id="addArmaBtn" class="btn small">Adicionar Arma</button>
               </div>
@@ -168,7 +315,7 @@
             <textarea id="inventoryWeapons" style="min-height:400px"></textarea>
           </div>
           <div>
-            <label>Geral</label>
+            <label for="inventoryGeneral">Geral</label>
             <textarea id="inventoryGeneral" style="min-height:400px"></textarea>
           </div>
         </div>
@@ -177,7 +324,7 @@
   </div>
 
 <script>
-const MAX_ATTR=4,MIN_ATTR=0,START_ATTR=1,POINT_POOL=5;
+const MAX_ATTR=5,MIN_ATTR=0,START_ATTR=1,POINT_POOL=5;
 const ATTR_KEYS=['forca','agilidade','vigor','intelecto','presenca'];
 const ATTR_LABELS={forca:'Força',agilidade:'Agilidade',vigor:'Vigor',intelecto:'Intelecto',presenca:'Presença'};
 
@@ -202,7 +349,7 @@ const SKILLS=[
   {id:'percepcao',label:'Percepção',attr:'presenca'},
   {id:'crime',label:'Crime',attr:'intelecto'},
   {id:'religiao',label:'Religião',attr:'presenca'},
-  {id:'adetramento',label:'Adestramento',attr:'presenca'},
+  {id:'adestramento',label:'Adestramento',attr:'presenca'},
   {id:'intuicao',label:'Intuição',attr:'presenca'}
 ];
 
@@ -221,13 +368,39 @@ const ORIGENS={
   'religioso':{'religiao':4,'diplomacia':2},
   'investigador':{'investigacao':4,'intimidacao':2},
   'amigo dos animais':{'adestramento':4,'diplomacia':2},
-  'ator':{'enganacao':4,'ituicao':2}
+  'ator':{'enganacao':4,'intuicao':2}
 };
 
-let state={name:'',origin:'nenhuma',attrs:{},skillLevel:{},vidaAtual:0,sanAtual:0,inventario:{armas:[],geral:""}};
+// === HABILIDADES PREDEFINIDAS ===
+// Adicione aqui as habilidades que os jogadores podem escolher
+const HABILIDADES_LISTA = [
+  { nome: 'Adestramento', desc: 'Lidar com animais e treinar criaturas.' },
+  { nome: 'Análise Científica', desc: 'Compreender fenômenos biológicos e químicos.' },
+  { nome: 'Artes Marciais', desc: 'Domínio de técnicas de combate corporal.' },
+  { nome: 'Carisma Sobrenatural', desc: 'Capacidade de influenciar com presença mágica.' },
+  { nome: 'Defesa Psíquica', desc: 'Proteção mental contra ataques mentais.' },
+  { nome: 'Detecção de Mentira', desc: 'Identificar quando alguém está mentindo.' },
+  { nome: 'Engenharia Reversa', desc: 'Compreender e desmontar tecnologia complexa.' },
+  { nome: 'Espiritismo', desc: 'Comunicação com entidades do outro plano.' },
+  { nome: 'Exorcismo', desc: 'Expulsão de entidades sobrenaturais.' },
+  { nome: 'Furtividade Extrema', desc: 'Desaparecer sem deixar rastros.' },
+  { nome: 'Intuição Aguçada', desc: 'Capacidade sobrenatural de pressentimentos.' },
+  { nome: 'Manipulação Emocional', desc: 'Controlar as emoções de outras pessoas.' },
+  { nome: 'Medicina Avançada', desc: 'Cirurgias e tratamentos médicos complexos.' },
+  { nome: 'Pilotar Veículos', desc: 'Conduzir qualquer tipo de veículo com maestria.' },
+  { nome: 'Rastreamento', desc: 'Seguir pistas e trilhas com precisão.' },
+  { nome: 'Resistência ao Trauma', desc: 'Capacidade de suportar sofrimento e horror.' },
+  { nome: 'Visão Noturna', desc: 'Enxergar perfeitamente no escuro.' },
+  { nome: 'Voz de Comando', desc: 'Dar ordens que pessoas obedecem naturalmente.' }
+];
+
+let state={name:'',origin:'nenhuma',attrs:{},skillLevel:{},vidaAtual:0,sanAtual:0,peAtual:0,adrenalina:false,habilidades:[],habilidadesDisp:[],inventario:{armas:[],geral:""}};
 
 ATTR_KEYS.forEach(k=>state.attrs[k]=START_ATTR);
 SKILLS.forEach(s=>state.skillLevel[s.id]=0);
+
+// Utilitário para escapar HTML
+function escapeHtml(str){ return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
 function calcPoints(){
   const spentAbove=Object.values(state.attrs).filter(v=>v>START_ATTR).reduce((a,b)=>a+b-START_ATTR,0);
@@ -239,19 +412,136 @@ function totalSkillBonus(id){return (state.skillLevel[id]||0)+originSkillBonus(i
 
 function calcStatus(){
   const vidaMax=10+state.attrs.vigor*4;
-  const sanMax=8+state.attrs.presenca*3;
-  const def=10+state.attrs.forca*2;
+  const sanMax=8+state.attrs.intelecto*3;
+  const peMax=10+state.attrs.presenca*2;
+  const def=10+getAttrFinal("forca")*2;
+
   if(state.vidaAtual>vidaMax)state.vidaAtual=vidaMax;
   if(state.sanAtual>sanMax)state.sanAtual=sanMax;
+  if(state.peAtual>peMax)state.peAtual=peMax;
+  if(state.vidaAtual<0)state.vidaAtual=0;
+  if(state.sanAtual<0)state.sanAtual=0;
+  if(state.peAtual<0)state.peAtual=0;
+
   document.getElementById('vidaMax').textContent=vidaMax;
   document.getElementById('sanMax').textContent=sanMax;
+  document.getElementById('peMax').textContent=peMax;
   document.getElementById('defVal').textContent=def;
   document.getElementById('vidaAtual').textContent=state.vidaAtual;
   document.getElementById('sanAtual').textContent=state.sanAtual;
+  document.getElementById('peAtual').textContent=state.peAtual;
+
   let msg='';
   if(state.vidaAtual<=0)msg='💀 Você está morto.';
   else if(state.sanAtual<=0)msg='🧠 Você enlouqueceu.';
+  else if(state.adrenalina)msg='⚡ Modo Adrenalina!';
   document.getElementById('statusMsg').textContent=msg;
+
+  /* ATUALIZA BARRAS */
+
+  const vidaPerc=(state.vidaAtual/vidaMax)*100;
+  const sanPerc=(state.sanAtual/sanMax)*100;
+  const pePerc=(state.peAtual/peMax)*100;
+
+  // SISTEMA DE ADRENALINA
+
+  if(vidaPerc <= 30){
+    if(!state.adrenalina){
+      state.adrenalina = true;
+      document.body.classList.add('adrenalina');
+      renderAttrs();
+    }
+  }else{
+    if(state.adrenalina){
+      state.adrenalina = false;
+      document.body.classList.remove('adrenalina');
+      renderAttrs();
+    }
+  }
+
+  const vidaBarra=document.getElementById("vidaBarra");
+  const sanBarra=document.getElementById("sanBarra");
+  const peBarra=document.getElementById("peBarra");
+
+  if(vidaBarra)vidaBarra.style.width=vidaPerc+"%";
+  if(sanBarra)sanBarra.style.width=sanPerc+"%";
+  if(peBarra)peBarra.style.width=pePerc+"%";
+
+  if(vidaBarra){
+    vidaBarra.classList.remove("vida-amarela","vida-vermelha");
+
+    if(vidaPerc<=50 && vidaPerc>25){
+      vidaBarra.classList.add("vida-amarela");
+    }
+
+    if(vidaPerc<=25){
+      vidaBarra.classList.add("vida-vermelha");
+    }
+  }
+
+  /* EFEITO DE LOUCURA */
+
+  const sanBox=document.querySelector(".statusBox");
+
+  if(sanBox){
+    sanBox.classList.remove("tremendo");
+
+    if(state.sanAtual<=0){
+      sanBox.classList.add("tremendo");
+    }
+  }
+
+  /* EFEITO DE SANGRAR */
+
+  const bloodOverlay = document.querySelector('.blood-overlay');
+
+  if(bloodOverlay){
+    if(vidaPerc <= 25){
+      bloodOverlay.classList.add('blood-active');
+    } else {
+      bloodOverlay.classList.remove('blood-active');
+    }
+  }
+
+  if(state.adrenalina){
+    document.body.classList.add("adrenalina");
+  }else{
+    document.body.classList.remove("adrenalina");
+  }
+
+  // Desativar adrenalina se morto
+  if(state.vidaAtual <= 0){
+    state.adrenalina = false;
+    document.body.classList.remove("adrenalina");
+  }
+}
+
+
+function getAttrFinal(attr){
+  let base = state.attrs[attr];
+
+  if(state.adrenalina){
+    if(attr === "forca" || attr === "agilidade"){
+      base += 2;
+    }
+  }
+
+  return base;
+}
+
+function turnoAdrenalina(){
+
+  if(state.adrenalina){
+
+    state.sanAtual--;
+
+    if(state.sanAtual < 0){
+      state.sanAtual = 0;
+    }
+
+    calcStatus();
+  }
+
 }
 
 function renderAttrs(){
@@ -261,7 +551,7 @@ function renderAttrs(){
     div.className='attr';
     div.innerHTML=`
       <div class="name">${ATTR_LABELS[k]}</div>
-      <div class="val">${state.attrs[k]}</div>
+      <div class="val">${getAttrFinal(k)}</div>
       <div class="controls">
         <button class="btn small" onclick="changeAttr('${k}',-1)">-</button>
         <button class="btn small" onclick="changeAttr('${k}',1)">+</button>
@@ -288,9 +578,9 @@ function renderSkills(){
     const div=document.createElement('div');
     div.className='skill';
     div.innerHTML=`
-      <div><b>${s.label}</b><div class="note">${ATTR_LABELS[s.attr]}</div></div>
+      <div><label for="skill-${s.id}">${s.label}</label><div class="note">${ATTR_LABELS[s.attr]}</div></div>
       <div>
-        <select onchange="setSkill('${s.id}',this.value)">
+        <select id="skill-${s.id}" onchange="setSkill('${s.id}',this.value)">
           <option value="0"${chosen==0?' selected':''}>0</option>
           <option value="2"${chosen==2?' selected':''}>+2</option>
           <option value="4"${chosen==4?' selected':''}>+4</option>
@@ -322,7 +612,156 @@ function renderSummary(){
     });
   }
 
-  document.getElementById('summary').innerHTML=html;
+  const summaryEl = document.getElementById('summary');
+  if(summaryEl) summaryEl.innerHTML=html;
+}
+
+// === GERENCIAR HABILIDADES DISPONÍVEIS ===
+function adicionarNovaHabilidadeOpcao(){
+  const nomeInput = document.getElementById('addHabNome');
+  const descInput = document.getElementById('addHabDesc');
+  
+  const nome = (nomeInput.value || '').trim();
+  const desc = (descInput.value || '').trim();
+  
+  if(!nome) return alert('Digite o nome da habilidade');
+  
+  // Verifica se já existe
+  if(state.habilidadesDisp.some(h => h.nome === nome)){
+    return alert('Essa habilidade já foi selecionada');
+  }
+  
+  state.habilidadesDisp.push({ nome, desc });
+  
+  // Limpa inputs
+  nomeInput.value = '';
+  descInput.value = '';
+  
+  // Atualiza UI
+  renderHabilidadesDisp();
+  renderSelectHabilidadesDisp();
+  
+  alert('✅ Habilidade "' + nome + '" adicionada à lista!');
+}
+
+function removerHabilidadeOpcao(idx){
+  if(confirm('Remover essa habilidade?')){
+    state.habilidadesDisp.splice(idx, 1);
+    renderHabilidadesDisp();
+    renderSelectHabilidadesDisp();
+  }
+}
+
+function renderHabilidadesDisp(){
+  const box = document.getElementById('listaHabilidadesDisp');
+  if(!box) return;
+  box.innerHTML = '';
+  
+  // Mostra a lista de habilidades predefinidas (HABILIDADES_LISTA)
+  if(HABILIDADES_LISTA.length === 0){
+    box.innerHTML = '<div class="note">Nenhuma habilidade disponível</div>';
+    return;
+  }
+  
+  // Cria um resumo das habilidades disponíveis
+  const titulo = document.createElement('div');
+  titulo.style.fontWeight = 'bold';
+  titulo.style.marginBottom = '8px';
+  titulo.textContent = '📋 Habilidades:';
+  box.appendChild(titulo);
+  
+  HABILIDADES_LISTA.forEach((h, idx)=>{
+    const div = document.createElement('div');
+    div.className = 'habilidade';
+    div.style.display = 'flex';
+    div.style.justifyContent = 'space-between';
+    div.style.alignItems = 'flex-start';
+    
+    const content = document.createElement('div');
+    content.style.flex = '1';
+    content.innerHTML = `<b>${escapeHtml(h.nome)}</b><div class="note">${escapeHtml(h.desc || 'Sem descrição')}</div>`;
+    
+    div.appendChild(content);
+    box.appendChild(div);
+  });
+}
+
+function renderSelectHabilidadesDisp(){
+  const sel = document.getElementById('selectHabilidadeDisponivel');
+  if(!sel) return;
+  sel.innerHTML = '<option value="">— Selecione uma habilidade —</option>';
+  
+  // Usa HABILIDADES_LISTA em vez de state.habilidadesDisp
+  HABILIDADES_LISTA.forEach((h, idx)=>{
+    const opt = document.createElement('option');
+    opt.value = idx;
+    opt.textContent = h.nome;
+    sel.appendChild(opt);
+  });
+}
+
+function adicionarHabilidadeSelecionada(){
+  const sel = document.getElementById('selectHabilidadeDisponivel');
+  if(!sel || sel.value === '') return alert('Selecione uma habilidade');
+  
+  const idx = parseInt(sel.value);
+  const hab = HABILIDADES_LISTA[idx];
+  
+  if(!hab) return alert('Habilidade inválida');
+  
+  // Verifica se já existe nas habilidades do personagem
+  if(state.habilidades && state.habilidades.some(h => h.nome === hab.nome)){
+    return alert('Esta habilidade já foi adicionada ao personagem');
+  }
+  
+  // Inicializa array se não existir
+  if(!state.habilidades) state.habilidades = [];
+  
+  // Adiciona
+  state.habilidades.push({ nome: hab.nome, desc: hab.desc });
+  renderHabilidades();
+  renderSummary();
+  sel.value = '';
+  
+  try{ syncHabilidadesToTextarea(); }catch(e){}
+  alert('✅ Habilidade "' + hab.nome + '" adicionada ao personagem!');
+}
+
+// Renderiza as habilidades do personagem
+function renderHabilidades(){
+  const box = document.getElementById('personagemHabilidadesBox');
+  if(!box) return;
+  box.innerHTML = '';
+  
+  if(!state.habilidades || state.habilidades.length === 0){
+    box.innerHTML = '<div class="note">Nenhuma habilidade adicionada</div>';
+    return;
+  }
+  
+  state.habilidades.forEach((h, idx)=>{
+    const div = document.createElement('div');
+    div.className = 'habilidade';
+    div.style.marginBottom = '8px';
+    div.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div style="flex:1">
+          <b>${escapeHtml(h.nome)}</b>
+          <div class="note">${escapeHtml(h.desc || 'Sem descrição')}</div>
+        </div>
+        <button class="btn small secondary" style="margin-left:8px" onclick="removerHabilidadePersonagem(${idx})">❌</button>
+      </div>
+    `;
+    box.appendChild(div);
+  });
+}
+
+// Remove uma habilidade do personagem
+function removerHabilidadePersonagem(idx){
+  if(confirm('Remover esta habilidade do personagem?')){
+    state.habilidades.splice(idx, 1);
+    renderHabilidades();
+    renderSummary();
+  }
 }
 
 // Função adicional: atualiza o resumo em um elemento alternativo `#resumo` se existir
@@ -337,11 +776,11 @@ function atualizarResumo(){
   resumoDiv.innerHTML = `
     <strong>${escapeHtml(nome)}</strong>
     <div class="note">Origem: ${escapeHtml(origemLabel)}</div>
-    <div>Força: ${a.forca}</div>
-    <div>Agilidade: ${a.agilidade}</div>
-    <div>Vigor: ${a.vigor}</div>
-    <div>Intelecto: ${a.intelecto}</div>
-    <div>Presença: ${a.presenca}</div>
+    <div>Força: ${getAttrFinal("forca")}</div>
+    <div>Agilidade: ${getAttrFinal("agilidade")}</div>
+    <div>Vigor: ${getAttrFinal("vigor")}</div>
+    <div>Intelecto: ${getAttrFinal("intelecto")}</div>
+    <div>Presença: ${getAttrFinal("presenca")}</div>
   `;
 }
 
@@ -372,11 +811,14 @@ document.getElementById('vidaMais').onclick=()=>{state.vidaAtual++;calcStatus();
 document.getElementById('vidaMenos').onclick=()=>{state.vidaAtual--;calcStatus();}
 document.getElementById('sanMais').onclick=()=>{state.sanAtual++;calcStatus();}
 document.getElementById('sanMenos').onclick=()=>{state.sanAtual--;calcStatus();}
+document.getElementById('peMais').onclick=()=>{state.peAtual++;calcStatus();}
+document.getElementById('peMenos').onclick=()=>{state.peAtual--;calcStatus();}
 
 // === Inicialização ===
 function init(){
   state.vidaAtual=10+state.attrs.vigor*4;
   state.sanAtual=10+state.attrs.presenca*3;
+  state.peAtual=10+state.attrs.vigor*2;
   // se o campo de nome já estiver preenchido no DOM (ex: carregado por outra parte), inicializa state.name
   const nomeInput = document.getElementById('nome');
   if(nomeInput && nomeInput.value) state.name = nomeInput.value;
@@ -384,6 +826,9 @@ function init(){
   renderAttrs();
   renderSkills();
   renderSummary();
+  renderHabilidadesDisp();
+  renderSelectHabilidadesDisp();
+  renderHabilidades();
   // garante que inventario exista e sincroniza UI de armas
   state.inventario = state.inventario || {armas:[],geral: ''};
   renderListaArmas();
@@ -541,6 +986,8 @@ document.getElementById("saveBtn").addEventListener("click", async () => {
     origem: state.origin,
     atributos: state.attrs,
     pericias: state.skillLevel,
+    habilidades: state.habilidades || [],
+    habilidadesDisp: state.habilidadesDisp || [],
     vidaAtual: state.vidaAtual,
     sanAtual: state.sanAtual,
     inventario: {
@@ -615,6 +1062,12 @@ function applyFichaObject(obj){
   }
   if(typeof obj.vidaAtual === 'number') state.vidaAtual = obj.vidaAtual;
   if(typeof obj.sanAtual === 'number') state.sanAtual = obj.sanAtual;
+  if(Array.isArray(obj.habilidades)){
+    state.habilidades = obj.habilidades.map(h=>({ nome: (h.nome||''), desc: (h.desc||'') }));
+  }
+  if(Array.isArray(obj.habilidadesDisp)){
+    state.habilidadesDisp = obj.habilidadesDisp.map(h=>({ nome: (h.nome||''), desc: (h.desc||'') }));
+  }
   if(obj.inventario && typeof obj.inventario === 'object'){
     // Inventário pode vir no formato estruturado (array de armas) ou texto
     if(Array.isArray(obj.inventario.armas)){
@@ -635,6 +1088,9 @@ function applyFichaObject(obj){
   renderAttrs();
   renderSkills();
   renderSummary();
+  renderHabilidadesDisp();
+  renderSelectHabilidadesDisp();
+  renderHabilidades();
   calcStatus();
 }
 
@@ -752,5 +1208,6 @@ window.atualizarCarga = atualizarCarga;
 // expõe para applyFichaObject chamar
 window.syncArmasFromTextarea = syncArmasFromTextarea;
 </script>
+<div id="bloodOverlay" class="blood-overlay"></div>
 </body>
 </html>
